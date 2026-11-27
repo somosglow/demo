@@ -133,12 +133,15 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
       <input id="zona" placeholder="Ej. Bella Vista, San Miguelito, Chorrera">
       <label for="tel">WhatsApp</label>
       <input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="Ej. 6123-4567">
+      <label for="email">Correo (para enviarte la confirmación)</label>
+      <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="tunegocio@gmail.com">
       <label>¿Cómo prefieres la demo?</label>
       <div class="chips" id="modo">
         <button type="button" class="chip">Videollamada</button><button type="button" class="chip">Llamada</button><button type="button" class="chip">Visita al local</button>
       </div>
       <label for="equipo">¿Cuántas personas trabajan contigo?</label>
       <select id="equipo"><option value="">Elige una opción</option><option>Solo yo</option><option>2 a 3</option><option>4 a 6</option><option>7 o más</option></select>
+      <label style="display:flex;gap:10px;align-items:flex-start;font-weight:400;cursor:pointer;margin-top:14px"><input type="checkbox" id="acepta" checked style="width:20px;height:20px;margin-top:2px;flex:none"> <span style="font-size:13px;opacity:.85">Acepto que Glow me envíe la confirmación, recordatorios y la propuesta por WhatsApp y correo. Puedo pedir que no me escriban cuando quiera.</span></label>
       <p class="err" id="err"></p>
       <button class="btn" id="send">Agendar mi demo gratis ✨</button>
       <button class="back" id="back">← Cambiar día u hora</button>
@@ -197,16 +200,18 @@ chips("tipo","tipo");chips("modo","modo");
 const q=new URLSearchParams(location.search);if(q.get("negocio"))$("negocio").value=q.get("negocio").slice(0,80);
 
 $("send").onclick=async()=>{
-  const v={nombre:$("nombre").value.trim(),negocio:$("negocio").value.trim(),zona:$("zona").value.trim(),tel:$("tel").value.replace(/[^\d+]/g,""),equipo:$("equipo").value};
+  const v={nombre:$("nombre").value.trim(),negocio:$("negocio").value.trim(),zona:$("zona").value.trim(),tel:$("tel").value.replace(/[^\d+]/g,""),equipo:$("equipo").value,email:$("email").value.trim()};
   if(!v.nombre)return $("err").textContent="Escribe tu nombre.";
   if(!v.negocio)return $("err").textContent="Escribe el nombre de tu negocio.";
   if(!sel.tipo)return $("err").textContent="Elige el tipo de negocio.";
   if(!v.zona)return $("err").textContent="Dinos en qué zona estás.";
   if(v.tel.replace(/\D/g,"").length<7)return $("err").textContent="Escribe un WhatsApp válido.";
   if(!sel.modo)return $("err").textContent="Elige cómo prefieres la demo.";
+  if(v.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email))return $("err").textContent="Revisa tu correo.";
+  if(!$("acepta").checked)return $("err").textContent="Marca la casilla para poder confirmarte la demo.";
   const btn=$("send");btn.disabled=true;btn.textContent="Agendando…";
-  const datos={_subject:`🗓️ Nueva demo Glow: ${v.negocio} — ${fechaLarga(sel.dia)} ${h12(sel.hora)}`,_template:"table",_captcha:"false",Fecha:fechaLarga(sel.dia),Hora:h12(sel.hora),"Fecha ISO":`${sel.dia} ${sel.hora} (Panamá)`,Nombre:v.nombre,Negocio:v.negocio,Tipo:sel.tipo,Zona:v.zona,WhatsApp:v.tel,"Cómo":sel.modo,Equipo:v.equipo||"—",Origen:q.get("o")||"directo"};
-  const lead={action:"nuevo",origen:q.get("o")||"directo",nombre:v.nombre,negocio:v.negocio,tipo:sel.tipo,zona:v.zona,whatsapp:v.tel,modo:sel.modo,equipo:v.equipo,fecha:sel.dia,hora:sel.hora};
+  const datos={_subject:`🗓️ Nueva demo Glow: ${v.negocio} — ${fechaLarga(sel.dia)} ${h12(sel.hora)}`,_template:"table",_captcha:"false",Fecha:fechaLarga(sel.dia),Hora:h12(sel.hora),"Fecha ISO":`${sel.dia} ${sel.hora} (Panamá)`,Nombre:v.nombre,Negocio:v.negocio,Tipo:sel.tipo,Zona:v.zona,WhatsApp:v.tel,Correo:v.email||"—","Cómo":sel.modo,Equipo:v.equipo||"—",Origen:q.get("o")||"directo"};
+  const lead={action:"nuevo",origen:q.get("o")||"directo",nombre:v.nombre,negocio:v.negocio,tipo:sel.tipo,zona:v.zona,whatsapp:v.tel,modo:sel.modo,equipo:v.equipo,email:v.email,acepta:true,fecha:sel.dia,hora:sel.hora};
   const aCRM=CRM?fetch(CRM,{method:"POST",body:JSON.stringify(lead)}).then(r=>r.json()).then(j=>j.ok===true).catch(()=>false):Promise.resolve(false);
   const aMail=fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(datos)}).then(async r=>{const j=await r.json().catch(()=>({}));return r.ok&&String(j.success)==="true"}).catch(()=>false);
   try{const[okC,okM]=await Promise.all([aCRM,aMail]);if(!okC&&!okM)throw 0;
