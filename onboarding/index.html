@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F1420">
+<meta name="robots" content="noindex">
+<title>Bienvenido a Glow · Datos de tu app</title>
+<link rel="icon" href="../ventas/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0F1420;--card:#1E2638;--card2:#252f45;--a:#FFB547;--b:#FF7A59;--soft:#AEB4C0;--ok:#4DD98C;--bad:#F0545F}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Poppins,system-ui,sans-serif;background:var(--bg);color:#fff;line-height:1.5}
+.w{max-width:620px;margin:0 auto;padding:24px 16px 60px}
+.logo{display:block;width:140px;margin:0 auto 14px}
+h1{font-size:26px;line-height:1.2;text-align:center}h1 span{background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;color:transparent}
+.sub{color:var(--soft);text-align:center;margin:8px 0 18px;font-size:14.5px}
+.bar{height:6px;background:var(--card2);border-radius:9px;overflow:hidden;margin-bottom:16px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--b));transition:.4s}
+.card{background:var(--card);border:1px solid #34405c;border-radius:18px;padding:18px;margin-bottom:14px}
+h2{font-size:17px;margin-bottom:4px}h2 small{display:block;color:var(--soft);font-weight:400;font-size:12.5px}
+label{display:block;font-size:13px;color:var(--soft);margin:12px 0 5px}
+input,select,textarea{width:100%;background:var(--card2);border:1.5px solid #34405c;border-radius:12px;padding:12px;color:#fff;font:inherit;font-size:15.5px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--a)}
+textarea{min-height:80px}
+.row{display:grid;grid-template-columns:1fr 92px 34px;gap:6px;margin-bottom:6px}.row input{padding:10px}
+.x{background:none;border:0;color:var(--soft);font-size:20px;cursor:pointer}
+.add{margin-top:6px;background:none;border:1.5px dashed #4a5570;color:var(--a);border-radius:12px;padding:10px;width:100%;font:inherit;cursor:pointer}
+.days{display:grid;gap:6px}.day{display:grid;grid-template-columns:52px 1fr 1fr 36px;gap:6px;align-items:center;font-size:13.5px}
+.day input[type=time]{padding:8px}.day input[type=checkbox]{width:20px;height:20px}
+.colors{display:flex;gap:10px;align-items:center}.colors input[type=color]{width:54px;height:44px;padding:3px;border-radius:10px}
+.btn{display:block;width:100%;margin-top:6px;padding:16px;border:0;border-radius:14px;background:linear-gradient(90deg,var(--a),var(--b));color:#111;font:inherit;font-weight:700;font-size:16.5px;cursor:pointer}
+.btn:disabled{opacity:.6}
+.err{color:var(--bad);font-size:14px;min-height:20px;margin:6px 0}
+.done{display:none;text-align:center}.done b{font-size:44px;display:block}
+.note{font-size:12.5px;color:var(--soft);margin-top:6px}
+</style>
+</head>
+<body>
+<div class="w">
+<img class="logo" src="../logo.png" alt="Glow">
+<div id="form">
+<h1>¡Bienvenido a <span>Glow</span>! 🎉</h1>
+<p class="sub">Llena estos datos y armamos tu app de citas con tu marca. Te toma unos 5 minutos; si algo no lo tienes a mano, déjalo en blanco y Juan te lo pide por WhatsApp.</p>
+<div class="bar"><i id="bar"></i></div>
+
+<div class="card"><h2>1. Tu negocio</h2>
+<label>Nombre del negocio (como aparecerá en la app)</label><input id="negocio" maxlength="80">
+<label>Tu nombre</label><input id="nombre" maxlength="80">
+<label>WhatsApp del negocio (donde te escriben tus clientes)</label><input id="whatsapp" inputmode="tel" maxlength="20">
+<label>Correo</label><input id="email" type="email" maxlength="120">
+<label>Dirección del local</label><input id="direccion" maxlength="200" placeholder="Calle, edificio, local, zona">
+<label>Instagram del negocio (de ahí tomamos tu logo y fotos)</label><input id="instagram" maxlength="60" placeholder="@tunegocio">
+</div>
+
+<div class="card"><h2>2. Tu marca<small>Si tienes tu logo en archivo, mándaselo a Juan por WhatsApp.</small></h2>
+<label>Colores de tu marca</label>
+<div class="colors"><input type="color" id="c1" value="#FFB547"><input type="color" id="c2" value="#1E2638"><span class="note">Toca para elegir</span></div>
+<label>Frase o eslogan (opcional)</label><input id="eslogan" maxlength="100">
+</div>
+
+<div class="card"><h2>3. Servicios y precios<small>Nombre, precio y duración en minutos</small></h2>
+<div id="svcs"></div><button class="add" type="button" id="addSvc">+ Agregar servicio</button>
+</div>
+
+<div class="card"><h2>4. Horario</h2><div class="days" id="days"></div></div>
+
+<div class="card"><h2>5. Tu equipo<small>Quién atiende citas (nombre y lo que hace)</small></h2>
+<div id="team"></div><button class="add" type="button" id="addTeam">+ Agregar persona</button>
+</div>
+
+<div class="card"><h2>6. Algo más</h2>
+<label>¿Cuánto tiempo antes pueden cancelar? / reglas de tu negocio</label><textarea id="reglas" maxlength="600"></textarea>
+<label>¿Algo que quieras que tenga tu app?</label><textarea id="extra" maxlength="600"></textarea>
+</div>
+
+<p class="err" id="err"></p>
+<button class="btn" id="send">Enviar mis datos ✨</button>
+<p class="note" style="text-align:center">Tus datos solo los usa el equipo de Glow para armar tu app.</p>
+</div>
+<div class="done card" id="done"><b>🎉</b><h2>¡Recibimos todo!</h2><p class="sub">Juan te escribe por WhatsApp para coordinar la entrega de tu app y la capacitación de tu equipo.</p></div>
+</div>
+<script>
+const CRM="https://script.google.com/macros/s/AKfycbw53Kj6yjSGP7bxH1mQsHP_DSMHkise9vzxW_GFCITxDwkmiIdaWBCOIVE7i9s49AI/exec";// misma URL del Apps Script de Glow Ventas
+const ENDPOINT="https://formsubmit.co/ajax/somosglowapp@gmail.com";
+const $=id=>document.getElementById(id);const q=new URLSearchParams(location.search);
+["negocio","nombre"].forEach(k=>{if(q.get(k))$(k).value=q.get(k).slice(0,80)});
+function fila(cont,ph1,ph2,typ){const d=document.createElement("div");d.className="row";d.innerHTML=`<input placeholder="${ph1}" maxlength="60"><input placeholder="${ph2}" ${typ?'inputmode="decimal"':''} maxlength="30"><button class="x" type="button" aria-label="Quitar">×</button>`;d.querySelector(".x").onclick=()=>d.remove();cont.appendChild(d)}
+const svcs=$("svcs"),team=$("team");
+[["Corte","$10 · 30"],["Barba","$7 · 20"],["",""]].forEach(()=>fila(svcs,"Servicio (ej. Corte)","$ · min",1));
+$("addSvc").onclick=()=>fila(svcs,"Servicio","$ · min",1);
+fila(team,"Nombre","Ej. Barbero");$("addTeam").onclick=()=>fila(team,"Nombre","Lo que hace");
+const D=["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
+D.forEach((d,i)=>{const e=document.createElement("div");e.className="day";e.innerHTML=`<span>${d}</span><input type="time" value="${i<6?"09:00":""}"><input type="time" value="${i<6?"19:00":""}"><input type="checkbox" ${i<6?"checked":""} title="Abierto">`;$("days").appendChild(e)});
+document.addEventListener("input",()=>{const f=[...document.querySelectorAll("#form input:not([type=color]):not([type=checkbox]):not([type=time]),#form textarea")];$("bar").style.width=Math.round(100*f.filter(x=>x.value.trim()).length/f.length)+"%"});
+const rows=c=>[...c.querySelectorAll(".row")].map(r=>[...r.querySelectorAll("input")].map(i=>i.value.trim())).filter(r=>r[0]);
+$("send").onclick=async()=>{
+  const v=k=>$(k).value.trim();$("err").textContent="";
+  if(!v("negocio"))return $("err").textContent="Escribe el nombre de tu negocio.";
+  if(v("whatsapp").replace(/\D/g,"").length<7)return $("err").textContent="Escribe un WhatsApp válido.";
+  const horario=[...document.querySelectorAll(".day")].map((e,i)=>{const t=e.querySelectorAll("input");return t[2].checked?`${D[i]} ${t[0].value}-${t[1].value}`:`${D[i]} cerrado`}).join(", ");
+  const servicios=rows(svcs).map(r=>r.join(" · ")).join(" | "),equipo=rows(team).map(r=>r.join(" · ")).join(" | ");
+  const datos={negocio:v("negocio"),nombre:v("nombre"),whatsapp:v("whatsapp"),email:v("email"),direccion:v("direccion"),instagram:v("instagram"),colores:`${$("c1").value} ${$("c2").value}`,eslogan:v("eslogan"),servicios,horario,equipo,reglas:v("reglas"),extra:v("extra"),lead:q.get("id")||""};
+  const b=$("send");b.disabled=true;b.textContent="Enviando…";
+  const aC=CRM?fetch(CRM,{method:"POST",body:JSON.stringify({action:"onboarding",...datos})}).then(r=>r.json()).then(j=>j.ok===true).catch(()=>false):Promise.resolve(false);
+  const aM=fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({_subject:`🎉 Onboarding Glow: ${datos.negocio}`,_template:"table",_captcha:"false",...datos})}).then(async r=>{const j=await r.json().catch(()=>({}));return r.ok&&String(j.success)==="true"}).catch(()=>false);
+  const [c,m]=await Promise.all([aC,aM]);
+  if(c||m){$("form").style.display="none";$("done").style.display="block";scrollTo(0,0)}
+  else{b.disabled=false;b.textContent="Enviar mis datos ✨";$("err").innerHTML=`No pudimos enviar. <a style="color:#FFB547" target="_blank" href="https://wa.me/13058030996?text=${encodeURIComponent("Hola Juan, estos son los datos de mi negocio para Glow:\n"+Object.entries(datos).filter(e=>e[1]).map(e=>e[0]+": "+e[1]).join("\n"))}">Envíaselos a Juan por WhatsApp 👉</a>`}
+};
+</script>
+</body>
+</html>

@@ -145,6 +145,7 @@ function tarjeta(l){
     ${plantillas(l).map((p,i)=>`<button class="a tpl" onclick="wa('${l.id}',${i})">${p[0]}</button>`).join("")}
     ${["nuevo","confirmado"].includes(l.estado)?`<button class="a pri" style="width:100%;margin-top:10px" onclick="upd('${l.id}',{estado:'demo hecha'},'Demo hecha: la propuesta sale sola')">✅ Demo hecha → enviar propuesta</button>`:""}
     <a class="a" style="display:block;margin-top:8px" target="_blank" rel="noopener" href="${DEMO_LINK}propuesta/?id=${l.id}&negocio=${encodeURIComponent(l.negocio||"")}">📄 Ver su propuesta</a>
+    ${l.estado==="cliente"?`<button class="a wa" style="width:100%;margin-top:8px" onclick="window.open('https://wa.me/${tel(l.whatsapp)}?text='+encodeURIComponent('¡Bienvenido a Glow, ${esc(nom(l))}! 🎉 Llena aquí los datos de tu app (5 min): ${DEMO_LINK}onboarding/?id=${l.id}&negocio=${encodeURIComponent(l.negocio||"")}'),'_blank')">📝 Enviar formulario de onboarding</button>`:""}
     <label>Estado</label><select onchange="upd('${l.id}',{estado:this.value},'Estado guardado')">${ESTADOS.map(e=>`<option ${e===l.estado?"selected":""}>${e}</option>`).join("")}</select>
     <label>Próximo seguimiento</label><input type="date" value="${String(l.proximo_toque||"").slice(0,10)}" onchange="upd('${l.id}',{proximo_toque:this.value},'Seguimiento agendado')">
     <label>Link de la reunión (Zoom o Meet)</label><input value="${esc(l.reunion||"")}" placeholder="${esc(DATA.config.zoom||"https://zoom.us/j/…")}" onchange="upd('${l.id}',{reunion:this.value},'Link guardado')">

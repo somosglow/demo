@@ -137,6 +137,14 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
 .cap{min-height:44px;font-weight:600;font-size:16px;margin-top:4px;transition:opacity .3s}
 .dots{display:flex;gap:7px;justify-content:center;margin-top:4px}.dots i{width:8px;height:8px;border-radius:99px;background:#3a4666;cursor:pointer;transition:.3s}.dots i.on{width:22px;background:var(--a)}
 @media(prefers-reduced-motion:reduce){.phone,.fchip,.pin,.cta{animation:none}}
+.plans{margin:6px 0 24px}
+.fund{background:linear-gradient(135deg,rgba(255,181,71,.16),rgba(255,122,89,.16));border:1px solid rgba(255,181,71,.4);border-radius:16px;padding:14px;margin-bottom:12px;text-align:center}.fund b{display:block;font-size:17px;color:var(--a)}.fund span{font-size:13.5px;color:#e8e8ee}
+.plan{position:relative;background:var(--card);border:1px solid #34405c;border-radius:18px;padding:18px 16px 14px;margin-bottom:12px}
+.plan.best{border:2px solid var(--a);box-shadow:0 10px 40px rgba(255,181,71,.15)}.plan.soon{opacity:.85}
+.pb{position:absolute;top:-11px;left:16px;background:var(--a);color:#111;font-size:11.5px;font-weight:700;padding:3px 11px;border-radius:99px}.pb.gray{background:#4a5570;color:#fff}
+.plan h3{font-size:18px}.pr{font-size:14px;color:var(--soft)}.pr b{font-size:32px;color:#fff}.pr em{font-style:normal;color:var(--ok);font-size:12.5px;margin-left:4px}
+.inst{font-size:13.5px;margin:2px 0 8px}.inst b{color:var(--a)}.inst s{color:#6f7890;margin-left:5px}
+.plan ul{list-style:none;font-size:13.5px}.plan li{padding:4px 0 4px 22px;position:relative}.plan li:before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700}
 </style>
 </head>
 <body>
@@ -203,6 +211,18 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
     <div class="dots" id="dots"></div>
     <a class="showcta" href="#card" onclick="document.getElementById('card').scrollIntoView({behavior:'smooth'});return false">📅 Quiero verlo con mi negocio · Agendar mi reunión</a>
     <small class="showsub">Elige día y hora abajo y te conectamos por videollamada, llamada o en tu local.</small>
+  </section>
+
+  <section class="plans" id="planes">
+    <div class="fund"><b>🚀 Precio de fundador</b><span>Los primeros 10 negocios pagan la mitad de la instalación y congelan su mensualidad en $35.</span></div>
+    <div class="plan best"><span class="pb">Fundador · solo 10 cupos</span>
+      <h3>Esencial</h3><div class="pr"><b>$35</b>/mes <em>congelado</em></div>
+      <div class="inst">Instalación <b>$175</b> <s>$350</s></div>
+      <ul><li>App de citas con tu logo, colores y precios</li><li>Reserva en 3 toques, sin registrarse</li><li>Recordatorios automáticos</li><li>Tarjeta de fidelidad digital</li><li>Perfil de Google optimizado</li><li>QR y material para tu local</li><li>Instalación y capacitación hechas por nosotros</li></ul>
+    </div>
+    <div class="plan"><h3>Esencial</h3><div class="pr"><b>$35</b>/mes</div><div class="inst">Instalación <b>$350</b></div><ul><li>Todo lo del plan Esencial</li><li>Precio normal después de los 10 fundadores</li></ul></div>
+    <div class="plan soon"><span class="pb gray">Próximamente</span><h3>Pro</h3><div class="pr"><b>$79</b>/mes</div><ul><li>Todo lo de Esencial</li><li>Asistente con IA en tu WhatsApp que responde y agenda citas por ti</li></ul></div>
+    <a class="showcta" href="#card" onclick="document.getElementById('card').scrollIntoView({behavior:'smooth'});return false">📅 Quiero mi cupo de fundador · Agendar mi reunión</a>
   </section>
 
   <div class="card" id="card">

@@ -79,6 +79,7 @@ function doPost(e) {
   const lock = LockService.getScriptLock(); lock.waitLock(10000);
   try {
     if (b.action === 'nuevo') return out(nuevo(b, b.key === cfg('CLAVE')));
+    if (b.action === 'onboarding') return out(onboarding(b));
     if (b.key !== cfg('CLAVE')) return out({ ok: false, error: 'clave' });
     if (b.action === 'actualizar') return out(actualizar(b));
     if (b.action === 'config') { ['ZOOM','PAGO_URL','VIDEO_URL','WA_JUAN','EMAILS','AUTO'].forEach(k => { if (b[k.toLowerCase()] != null) P().setProperty(k, corto(b[k.toLowerCase()], 400)); }); return out({ ok: true }); }
@@ -117,6 +118,20 @@ function actualizar(b) {
   set(f, 'actualizado', new Date());
   if (b.estado === 'demo hecha' && antes !== 'demo hecha') contactar(f, 'propuesta');
   if (b.estado === 'cliente' && antes !== 'cliente') contactar(f, 'bienvenida');
+  return { ok: true };
+}
+
+// ---------- onboarding (cliente que ya pagó llena los datos de su app) ----------
+const OB = ['fecha','lead','negocio','nombre','whatsapp','email','direccion','instagram','colores','eslogan','servicios','horario','equipo','reglas','extra','estado'];
+function onboarding(b) {
+  if (!corto(b.negocio).trim()) return { ok: false, error: 'datos' };
+  const ss = libro(); let sh = ss.getSheetByName('Onboarding');
+  if (!sh) { sh = ss.insertSheet('Onboarding'); sh.appendRow(OB); sh.setFrozenRows(1); }
+  const f = { fecha: new Date(), estado: 'por montar' }; OB.forEach(k => { if (k !== 'fecha' && k !== 'estado') f[k] = corto(b[k], 1500); });
+  sh.appendRow(OB.map(k => f[k] || ''));
+  const L = filas().find(x => (f.lead && x.id === f.lead) || (String(x.negocio).toLowerCase() === String(f.negocio).toLowerCase()));
+  if (L) set(L, 'notas', corto((L.notas ? L.notas + '\n' : '') + Utilities.formatDate(new Date(), TZ, 'dd/MM HH:mm') + ' Onboarding recibido ✅', 3000));
+  avisar(`🎉 Onboarding listo: ${f.negocio}`, `Ya mandó sus datos (servicios, horario, equipo). Hay que montar su app.`, 'high', L ? L.id : '');
   return { ok: true };
 }
 
@@ -189,7 +204,7 @@ function mensajes(f) {
     seg3: { corto: 'último seguimiento', asunto: `Último mensaje sobre Glow para ${neg}`,
       texto: `Hola ${n}, no te queremos llenar de mensajes 🙏 Si más adelante quieres tu app de citas para ${neg}, aquí estamos: ${prop}\n¡Mucho éxito!\n\nEquipo Glow ✨` },
     bienvenida: { corto: 'bienvenida', asunto: `¡Bienvenido a Glow, ${neg}! 🎉`,
-      texto: `Hola ${n}, ¡bienvenido a Glow! Ya eres parte de nuestros negocios fundadores.\n\nQué sigue: Juan te escribe para coordinar la instalación, te pedimos logo, servicios, precios y horarios, y te entregamos tu app lista con capacitación. Tu factura electrónica te llega a este correo.\n\nEquipo Glow ✨` },
+      texto: `Hola ${n}, ¡bienvenido a Glow! Ya eres parte de nuestros negocios fundadores.\n\nPrimer paso (5 minutos): llena aquí los datos de tu app (servicios, precios, horario y equipo): ${BASE}onboarding/?id=${f.id}&negocio=${encodeURIComponent(neg)}\nDespués Juan te escribe para coordinar la entrega y la capacitación de tu equipo. Tu factura electrónica te llega a este correo.\n\nEquipo Glow ✨` },
   };
 }
 const PIE_TXT = '\n\n—\nRecibes este mensaje porque agendaste una demo en Glow. Si no quieres recibir más mensajes, responde BAJA.';
