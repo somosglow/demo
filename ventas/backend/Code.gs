@@ -31,6 +31,8 @@ function setup() {
   let sh = ss.getSheetByName('Leads');
   if (!sh) { sh = ss.insertSheet('Leads'); sh.appendRow(HEAD); sh.setFrozenRows(1); }
   else { const h = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]; HEAD.forEach(k => { if (h.indexOf(k) < 0) sh.getRange(1, sh.getLastColumn() + 1).setValue(k); }); }
+  const hh = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  ['fecha','hora','whatsapp','proximo_toque','id'].forEach(k => { const c = hh.indexOf(k); if (c >= 0) sh.getRange(1, c + 1, sh.getMaxRows(), 1).setNumberFormat('@'); });
   const p = P(), def = { CLAVE: Utilities.getUuid().slice(0, 8), TOPIC: 'glow-ventas-' + Utilities.getUuid().replace(/-/g, '').slice(0, 16),
     ZOOM: '', PAGO_URL: '', VIDEO_URL: '', WA_JUAN: '', WA_TOKEN: '', WA_PHONE_ID: '', APP: BASE + 'ventas/', EMAILS: '', AUTO: 'si' };
   Object.keys(def).forEach(k => { if (p.getProperty(k) === null) p.setProperty(k, def[k]); });
@@ -46,7 +48,8 @@ function hoja() { return SpreadsheetApp.getActive().getSheetByName('Leads'); }
 function cab() { return hoja().getRange(1, 1, 1, hoja().getLastColumn()).getValues()[0]; }
 function filas() {
   const v = hoja().getDataRange().getValues(); const h = v.shift();
-  return v.map((r, i) => { const o = { _fila: i + 2 }; h.forEach((k, j) => o[k] = r[j] instanceof Date ? Utilities.formatDate(r[j], TZ, "yyyy-MM-dd'T'HH:mm") : r[j]); return o; });
+  const fmt = { fecha: 'yyyy-MM-dd', hora: 'HH:mm', proximo_toque: 'yyyy-MM-dd' };
+  return v.map((r, i) => { const o = { _fila: i + 2 }; h.forEach((k, j) => o[k] = r[j] instanceof Date ? Utilities.formatDate(r[j], TZ, fmt[k] || "yyyy-MM-dd'T'HH:mm") : r[j]); return o; });
 }
 function set(f, k, val) { const c = cab().indexOf(k); if (c >= 0) hoja().getRange(f._fila, c + 1).setValue(val); f[k] = val; }
 function enviados(f) { try { return JSON.parse(f.enviados || '{}'); } catch (e) { return {}; } }
