@@ -81,6 +81,7 @@ function doPost(e) {
   try {
     if (b.action === 'nuevo') return out(nuevo(b, b.key === cfg('CLAVE')));
     if (b.action === 'onboarding') return out(onboarding(b));
+    if (b.action === 'chat') return out(chat(b));
     if (b.key !== cfg('CLAVE')) return out({ ok: false, error: 'clave' });
     if (b.action === 'actualizar') return out(actualizar(b));
     if (b.action === 'config') { ['ZOOM','PAGO_URL','VIDEO_URL','WA_JUAN','EMAILS','AUTO'].forEach(k => { if (b[k.toLowerCase()] != null) P().setProperty(k, corto(b[k.toLowerCase()], 400)); }); return out({ ok: true }); }
@@ -134,6 +135,28 @@ function onboarding(b) {
   if (L) set(L, 'notas', corto((L.notas ? L.notas + '\n' : '') + Utilities.formatDate(new Date(), TZ, 'dd/MM HH:mm') + ' Onboarding recibido ✅', 3000));
   avisar(`🎉 Onboarding listo: ${f.negocio}`, `Ya mandó sus datos (servicios, horario, equipo). Hay que montar su app.`, 'high', L ? L.id : '');
   return { ok: true };
+}
+
+// ---------- asistente virtual 24/7 (IA). Se activa poniendo AI_KEY (llave de la API de Anthropic) en las propiedades ----------
+const AI_SISTEMA = `Eres el asistente virtual de Glow en su página web (Panamá). Respondes en español, cálido, claro y corto (máximo 5 líneas).
+Glow: app de citas con la marca de cada negocio (logo, colores, servicios, precios) para barberías, salones, spas, uñas y estéticas. Incluye: reserva en 3 toques sin registrarse, recordatorios automáticos, tarjeta de fidelidad (12 sellos, 2 de regalo), perfil de Google optimizado, QR y material para el local, agenda para el equipo, instalación y capacitación hechas por el equipo de Glow.
+Planes: Esencial $35/mes o $350/año (2 meses gratis). Pro $79/mes o $790/año, en PREVENTA (asistente IA de WhatsApp, recordatorios por WhatsApp, depósitos Yappy/tarjeta, reseñas en Google, campañas de reactivación, reportes, multi-sucursal, soporte prioritario; se activa por partes cuando cada función esté probada y no se cobra la diferencia hasta entonces). Fundadores (primeros 10 negocios): instalación $175 en vez de $350 y mensualidad congelada en $35. Pagos con tarjeta, Yappy o transferencia; factura electrónica por correo.
+Demo gratis de 20 minutos (videollamada, llamada o en el local) que se agenda en https://somosglow.github.io/demo/ . WhatsApp de Glow: +507 6130-5139. En la demo atiende Juan, del equipo.
+Reglas: si preguntan, di con naturalidad que eres un asistente virtual. No inventes cifras de resultados, fechas de entrega, condiciones de contrato ni funciones que no estén aquí; si no sabes algo, ofrece que Juan lo responda por WhatsApp. Siempre que tenga sentido, invita a agendar la demo. No pidas datos de pago ni contraseñas. Nunca menciones "WM".`;
+function chat(b) {
+  const key = cfg('AI_KEY'); if (!key) return { ok: false, error: 'sin IA' };
+  const c = CacheService.getScriptCache(), n = Number(c.get('chat') || 0); if (n > 300) return { ok: false, error: 'limite' }; c.put('chat', String(n + 1), 3600);
+  const msgs = (Array.isArray(b.mensajes) ? b.mensajes : []).slice(-10).map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: corto(m.content, 600) })).filter(m => m.content);
+  if (!msgs.length || msgs[0].role !== 'user') return { ok: false };
+  const sys = AI_SISTEMA + (b.negocio ? `\nEl visitante vino desde un link personalizado para el negocio: ${corto(b.negocio, 60)}.` : '') + `\nPágina actual: ${corto(b.pagina, 20)}.`;
+  try {
+    const r = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', { method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      payload: JSON.stringify({ model: cfg('AI_MODEL', 'claude-haiku-5-5'), max_tokens: 350, system: sys, messages: msgs }) });
+    if (r.getResponseCode() >= 300) return { ok: false, error: 'ia' };
+    const j = JSON.parse(r.getContentText()); const t = (j.content || []).filter(x => x.type === 'text').map(x => x.text).join('').trim();
+    return t ? { ok: true, reply: t } : { ok: false };
+  } catch (x) { return { ok: false, error: 'ia' }; }
 }
 
 // ---------- secuencia automática ----------

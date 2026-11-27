@@ -101,5 +101,6 @@ function pintar(d){
 pintar({negocio:q.get("negocio")||"",nombre:q.get("nombre")||""});
 if(CRM&&q.get("id"))fetch(`${CRM}?action=propuesta&id=${encodeURIComponent(q.get("id"))}`).then(r=>r.json()).then(d=>{if(d.ok)pintar(d)}).catch(()=>{});
 </script>
+<script>window.GLOW_CRM="https://script.google.com/macros/s/AKfycbw53Kj6yjSGP7bxH1mQsHP_DSMHkise9vzxW_GFCITxDwkmiIdaWBCOIVE7i9s49AI/exec";</script><script src="../asistente/asistente.js" defer></script>
 </body>
 </html>
