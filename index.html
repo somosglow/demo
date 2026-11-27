@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda tu demo gratis · Glow</title>
+<meta name="description" content="Agenda en 1 minuto tu demo gratis de Glow: tu propia app de citas con tu logo, recordatorios y tarjeta de fidelidad.">
+<meta property="og:title" content="Agenda tu demo gratis de Glow">
+<meta property="og:description" content="Te armamos tu app de citas con el nombre de tu negocio. 20 minutos, gratis y sin compromiso.">
+<meta name="theme-color" content="#0F1420">
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0F1420;--card:#1E2638;--card2:#252f45;--a:#FFB547;--b:#FF7A59;--txt:#fff;--soft:#AEB4C0;--ok:#4DD98C;--bad:#F0545F}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:Poppins,system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;line-height:1.5}
+.glow-bg{position:fixed;inset:-20%;z-index:-2;background:radial-gradient(40% 35% at 20% 15%,rgba(255,181,71,.22),transparent 70%),radial-gradient(45% 40% at 85% 30%,rgba(255,122,89,.18),transparent 70%),radial-gradient(50% 40% at 50% 100%,rgba(255,122,89,.12),transparent 70%);animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(3%,-3%) scale(1.06)}}
+.spark{position:fixed;z-index:-1;width:10px;height:10px;opacity:.0;background:linear-gradient(var(--a),var(--b));clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:twinkle linear infinite}
+@keyframes twinkle{0%{opacity:0;transform:translateY(0) scale(.4) rotate(0)}20%{opacity:.9}100%{opacity:0;transform:translateY(-140px) scale(1.2) rotate(180deg)}}
+.wrap{max-width:560px;margin:0 auto;padding:28px 18px 60px}
+header{text-align:center;padding:18px 0 8px}
+header img{width:150px;animation:pop .9s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.6) translateY(10px)}}
+.badge{display:inline-flex;gap:6px;align-items:center;margin-top:18px;padding:6px 14px;border-radius:99px;background:rgba(255,181,71,.12);color:var(--a);font-size:13px;font-weight:600;border:1px solid rgba(255,181,71,.35)}
+.badge i{width:8px;height:8px;border-radius:50%;background:var(--a);box-shadow:0 0 0 0 rgba(255,181,71,.7);animation:pulse 1.6s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 10px rgba(255,181,71,0)}100%{box-shadow:0 0 0 0 rgba(255,181,71,0)}}
+h1{font-size:clamp(28px,7.5vw,40px);line-height:1.15;margin:16px 0 10px;font-weight:700}
+h1 span{background:linear-gradient(90deg,var(--a),var(--b),var(--a));background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.sub{color:var(--soft);font-size:16px}
+.perks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0}
+.perk{background:var(--card);border-radius:14px;padding:12px;font-size:13.5px;display:flex;gap:8px;align-items:center;opacity:0;transform:translateY(12px);animation:up .6s forwards}
+.perk b{font-size:18px}
+@keyframes up{to{opacity:1;transform:none}}
+.card{background:linear-gradient(180deg,var(--card),#182031);border-radius:22px;padding:22px 18px;border:1px solid rgba(255,255,255,.06);box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative;overflow:hidden}
+.steps{display:flex;gap:8px;margin-bottom:18px}
+.steps div{flex:1;height:5px;border-radius:9px;background:#2c3650;overflow:hidden}
+.steps div span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--b));transition:width .5s}
+.steps div.on span{width:100%}
+.step{display:none;animation:slide .45s ease both}
+.step.on{display:block}
+@keyframes slide{from{opacity:0;transform:translateX(24px)}}
+h2{font-size:20px;margin-bottom:4px}
+.hint{color:var(--soft);font-size:14px;margin-bottom:14px}
+.days{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory}
+.days::-webkit-scrollbar{display:none}
+.day{flex:0 0 66px;scroll-snap-align:start;background:var(--card2);border:1.5px solid transparent;border-radius:14px;padding:10px 0;text-align:center;cursor:pointer;transition:.2s;color:var(--txt);font-family:inherit}
+.day small{display:block;color:var(--soft);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.day strong{font-size:22px;display:block}
+.day:hover{transform:translateY(-2px)}
+.day.sel{border-color:var(--a);background:rgba(255,181,71,.12);box-shadow:0 0 0 4px rgba(255,181,71,.12)}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.slot{background:var(--card2);border:1.5px solid transparent;border-radius:12px;padding:11px 0;color:var(--txt);font-family:inherit;font-size:15px;cursor:pointer;transition:.2s;opacity:0;animation:up .35s forwards}
+.slot:hover:not(:disabled){border-color:rgba(255,181,71,.5)}
+.slot.sel{background:linear-gradient(90deg,var(--a),var(--b));color:#1b1208;font-weight:600}
+.slot:disabled{opacity:.28!important;cursor:not-allowed;text-decoration:line-through}
+.empty{color:var(--soft);font-size:14px;grid-column:1/-1;padding:10px 0}
+label{display:block;font-size:13px;color:var(--soft);margin:12px 0 6px}
+input,select{width:100%;background:var(--card2);border:1.5px solid #34405c;border-radius:12px;padding:13px 14px;color:var(--txt);font-family:inherit;font-size:16px;outline:none;transition:.2s}
+input:focus,select:focus{border-color:var(--a);box-shadow:0 0 0 4px rgba(255,181,71,.12)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card2);border:1.5px solid #34405c;border-radius:99px;padding:8px 14px;color:var(--txt);font-family:inherit;font-size:14px;cursor:pointer;transition:.2s}
+.chip.sel{border-color:var(--a);background:rgba(255,181,71,.14);color:var(--a)}
+.btn{width:100%;margin-top:20px;border:0;border-radius:14px;padding:16px;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;color:#1b1208;background:linear-gradient(90deg,var(--a),var(--b));background-size:200% auto;transition:.3s;box-shadow:0 10px 30px rgba(255,122,89,.35)}
+.btn:hover{background-position:right center;transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+.back{background:none;border:0;color:var(--soft);font-family:inherit;font-size:14px;margin-top:12px;cursor:pointer;width:100%}
+.resume{background:rgba(255,181,71,.1);border:1px dashed rgba(255,181,71,.45);border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:6px}
+.err{color:var(--bad);font-size:13px;margin-top:8px;min-height:18px}
+.done{text-align:center;padding:10px 0}
+.check{width:84px;height:84px;margin:6px auto 14px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;animation:pop .7s cubic-bezier(.2,1.6,.4,1) both}
+.check svg{width:40px;stroke:#1b1208;stroke-width:4;fill:none;stroke-dasharray:60;stroke-dashoffset:60;animation:draw .6s .4s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.ghost{display:block;margin-top:10px;padding:13px;border-radius:14px;border:1.5px solid #34405c;color:var(--txt);text-decoration:none;font-size:15px}
+.trust{margin-top:22px;text-align:center;color:var(--soft);font-size:13px}
+.faq{margin-top:26px}
+details{background:var(--card);border-radius:14px;padding:14px 16px;margin-bottom:8px}
+summary{cursor:pointer;font-weight:500;list-style:none}
+summary::after{content:"+";float:right;color:var(--a);font-size:20px;line-height:1}
+details[open] summary::after{content:"–"}
+details p{color:var(--soft);font-size:14px;margin-top:8px}
+footer{text-align:center;color:#6f7789;font-size:12px;margin-top:30px}
+footer a{color:var(--a);text-decoration:none}
+canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.perk,.slot{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="glow-bg"></div>
+<canvas id="conf"></canvas>
+<div class="wrap">
+  <header>
+    <img src="logo.png" alt="Glow">
+    <div><span class="badge"><i></i> Cupos de fundador abiertos</span></div>
+    <h1>Mira <span>tu propia app de citas</span> funcionando</h1>
+    <p class="sub">Te armamos una demo con el nombre de tu negocio. 20 minutos, gratis y sin compromiso.</p>
+  </header>
+
+  <div class="perks">
+    <div class="perk" style="animation-delay:.1s"><b>📲</b> Reservas en 3 toques</div>
+    <div class="perk" style="animation-delay:.2s"><b>⏰</b> Recordatorios automáticos</div>
+    <div class="perk" style="animation-delay:.3s"><b>🎁</b> Tarjeta de fidelidad</div>
+    <div class="perk" style="animation-delay:.4s"><b>🎨</b> Con tu logo y colores</div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="steps"><div class="on" id="p1"><span></span></div><div id="p2"><span></span></div><div id="p3"><span></span></div></div>
+
+    <section class="step on" id="s1">
+      <h2>1. Elige el día</h2>
+      <p class="hint">Lunes a sábado · hora de Panamá</p>
+      <div class="days" id="days"></div>
+      <h2 style="margin-top:14px">2. Elige la hora</h2>
+      <div class="slots" id="slots"><p class="empty">Toca un día para ver las horas disponibles.</p></div>
+      <button class="btn" id="next1" disabled>Continuar</button>
+    </section>
+
+    <section class="step" id="s2">
+      <h2>3. Cuéntanos de tu negocio</h2>
+      <div class="resume" id="resume"></div>
+      <label for="nombre">Tu nombre</label>
+      <input id="nombre" autocomplete="name" placeholder="Ej. Carlos Pérez">
+      <label for="negocio">Nombre de tu negocio</label>
+      <input id="negocio" placeholder="Ej. Barbería El Tigre">
+      <label>Tipo de negocio</label>
+      <div class="chips" id="tipo">
+        <button type="button" class="chip">Barbería</button><button type="button" class="chip">Salón de belleza</button><button type="button" class="chip">Spa</button><button type="button" class="chip">Uñas</button><button type="button" class="chip">Estética</button><button type="button" class="chip">Otro</button>
+      </div>
+      <label for="zona">¿En qué zona estás?</label>
+      <input id="zona" placeholder="Ej. Bella Vista, San Miguelito, Chorrera">
+      <label for="tel">WhatsApp</label>
+      <input id="tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="Ej. 6123-4567">
+      <label>¿Cómo prefieres la demo?</label>
+      <div class="chips" id="modo">
+        <button type="button" class="chip">Videollamada</button><button type="button" class="chip">Llamada</button><button type="button" class="chip">Visita al local</button>
+      </div>
+      <label for="equipo">¿Cuántas personas trabajan contigo?</label>
+      <select id="equipo"><option value="">Elige una opción</option><option>Solo yo</option><option>2 a 3</option><option>4 a 6</option><option>7 o más</option></select>
+      <p class="err" id="err"></p>
+      <button class="btn" id="send">Agendar mi demo gratis ✨</button>
+      <button class="back" id="back">← Cambiar día u hora</button>
+    </section>
+
+    <section class="step" id="s3">
+      <div class="done">
+        <div class="check"><svg viewBox="0 0 40 40"><path d="M9 21l7 7 15-16"/></svg></div>
+        <h2>¡Listo, <span id="okName"></span>! 🎉</h2>
+        <p class="hint" id="okText"></p>
+        <p class="hint">El equipo de Glow te escribe por WhatsApp para confirmar. Mientras tanto, ve pensando en tu logo y tus colores 😉</p>
+        <a class="btn" id="gcal" target="_blank" rel="noopener" style="display:block;text-decoration:none">Agregar a mi calendario</a>
+        <a class="ghost" href="https://instagram.com/glowapp.oficial" target="_blank" rel="noopener">Síguenos en Instagram @glowapp.oficial</a>
+      </div>
+    </section>
+  </div>
+
+  <p class="trust">🔒 Tus datos solo los usa el equipo de Glow para contactarte.</p>
+
+  <div class="faq">
+    <details><summary>¿Qué pasa en la demo?</summary><p>Te mostramos tu app de reservas con el nombre de tu negocio, hacemos una cita de prueba en vivo y ves los recordatorios, la tarjeta de fidelidad y el panel del dueño.</p></details>
+    <details><summary>¿Cuánto cuesta Glow?</summary><p>Para los 10 negocios fundadores: $175 de instalación (normal $350) + $35 al mes, con el precio congelado. La demo es gratis y sin compromiso.</p></details>
+    <details><summary>Ya uso otra app de citas, ¿sirve igual?</summary><p>Sí. La diferencia es que con Glow tu cliente reserva en tu propia app, con tu marca, y nosotros te lo montamos todo e instalamos el material QR en tu local.</p></details>
+  </div>
+
+  <footer>Glow · Panamá · <a href="https://instagram.com/glowapp.oficial" target="_blank" rel="noopener">@glowapp.oficial</a></footer>
+</div>
+
+<script>
+const ENDPOINT="https://formsubmit.co/ajax/somosglowapp@gmail.com";
+const TZ="America/Panama";
+const HORAS=["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
+const DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const $=id=>document.getElementById(id);
+let sel={dia:null,hora:null,tipo:"",modo:""};
+
+for(let i=0;i<18;i++){const s=document.createElement("i");s.className="spark";s.style.left=Math.random()*100+"vw";s.style.top=(40+Math.random()*60)+"vh";s.style.animationDuration=(5+Math.random()*6)+"s";s.style.animationDelay=(-Math.random()*8)+"s";document.body.appendChild(s)}
+
+function ahoraPanama(){const p=new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());const g=t=>p.find(x=>x.type===t).value;return{fecha:`${g("year")}-${g("month")}-${g("day")}`,min:(+g("hour")%24)*60+ +g("minute")}}
+function h12(h){const[a,b]=h.split(":").map(Number);return`${a%12||12}:${String(b).padStart(2,"0")} ${a<12?"AM":"PM"}`}
+function fechaLarga(d){const[y,m,dd]=d.split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,dd,12));return`${["domingo","lunes","martes","miércoles","jueves","viernes","sábado"][dt.getUTCDay()]} ${dd} de ${["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][m-1]}`}
+
+const hoy=ahoraPanama();
+(function dias(){const[y,m,d]=hoy.fecha.split("-").map(Number);const base=Date.UTC(y,m-1,d,12);let n=0;for(let i=0;n<14&&i<21;i++){const dt=new Date(base+i*864e5);if(dt.getUTCDay()===0)continue;const iso=dt.toISOString().slice(0,10);if(i===0&&hoy.min>=17*60)continue;n++;const b=document.createElement("button");b.className="day";b.type="button";b.innerHTML=`<small>${i===0?"Hoy":i===1?"Mañana":DIAS[dt.getUTCDay()]}</small><strong>${dt.getUTCDate()}</strong><small>${MESES[dt.getUTCMonth()]}</small>`;b.onclick=()=>{document.querySelectorAll(".day").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");sel.dia=iso;sel.hora=null;$("next1").disabled=true;slots()};$("days").appendChild(b)}})();
+
+function slots(){const box=$("slots");box.innerHTML="";let libres=0;HORAS.forEach((h,i)=>{const[a,b]=h.split(":").map(Number);const pasada=sel.dia===hoy.fecha&&a*60+b<=hoy.min+90;const sab=new Date(sel.dia+"T12:00:00Z").getUTCDay()===6&&a>=14;if(sab)return;const el=document.createElement("button");el.type="button";el.className="slot";el.textContent=h12(h);el.style.animationDelay=i*.03+"s";el.disabled=pasada;if(!pasada)libres++;el.onclick=()=>{document.querySelectorAll(".slot").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");sel.hora=h;$("next1").disabled=false};box.appendChild(el)});if(!libres)box.innerHTML='<p class="empty">Ya no quedan horas este día. Elige otro 👆</p>'}
+
+function paso(n){["s1","s2","s3"].forEach((s,i)=>$(s).classList.toggle("on",i===n-1));["p1","p2","p3"].forEach((p,i)=>$(p).classList.toggle("on",i<n));$("card").scrollIntoView({behavior:"smooth",block:"start"})}
+$("next1").onclick=()=>{$("resume").textContent=`📅 ${fechaLarga(sel.dia)} · ${h12(sel.hora)}`;paso(2)};
+$("back").onclick=()=>paso(1);
+function chips(id,key){$(id).querySelectorAll(".chip").forEach(c=>c.onclick=()=>{$(id).querySelectorAll(".chip").forEach(x=>x.classList.remove("sel"));c.classList.add("sel");sel[key]=c.textContent;$("err").textContent=""})}
+chips("tipo","tipo");chips("modo","modo");
+["nombre","negocio","zona","tel"].forEach(id=>$(id).addEventListener("input",()=>$("err").textContent=""));
+
+const q=new URLSearchParams(location.search);if(q.get("negocio"))$("negocio").value=q.get("negocio").slice(0,80);
+
+$("send").onclick=async()=>{
+  const v={nombre:$("nombre").value.trim(),negocio:$("negocio").value.trim(),zona:$("zona").value.trim(),tel:$("tel").value.replace(/[^\d+]/g,""),equipo:$("equipo").value};
+  if(!v.nombre)return $("err").textContent="Escribe tu nombre.";
+  if(!v.negocio)return $("err").textContent="Escribe el nombre de tu negocio.";
+  if(!sel.tipo)return $("err").textContent="Elige el tipo de negocio.";
+  if(!v.zona)return $("err").textContent="Dinos en qué zona estás.";
+  if(v.tel.replace(/\D/g,"").length<7)return $("err").textContent="Escribe un WhatsApp válido.";
+  if(!sel.modo)return $("err").textContent="Elige cómo prefieres la demo.";
+  const btn=$("send");btn.disabled=true;btn.textContent="Agendando…";
+  const datos={_subject:`🗓️ Nueva demo Glow: ${v.negocio} — ${fechaLarga(sel.dia)} ${h12(sel.hora)}`,_template:"table",_captcha:"false",Fecha:fechaLarga(sel.dia),Hora:h12(sel.hora),"Fecha ISO":`${sel.dia} ${sel.hora} (Panamá)`,Nombre:v.nombre,Negocio:v.negocio,Tipo:sel.tipo,Zona:v.zona,WhatsApp:v.tel,"Cómo":sel.modo,Equipo:v.equipo||"—",Origen:q.get("o")||"directo"};
+  try{const r=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(datos)});if(!r.ok)throw 0;
+    $("okName").textContent=v.nombre.split(" ")[0];$("okText").textContent=`Tu demo de ${v.negocio} quedó para el ${fechaLarga(sel.dia)} a las ${h12(sel.hora)} (${sel.modo.toLowerCase()}).`;
+    const[y,m,d]=sel.dia.split("-");const[hh,mm]=sel.hora.split(":").map(Number);const pad=n=>String(n).padStart(2,"0");const ini=`${y}${m}${d}T${pad(hh+5)}${pad(mm)}00Z`;const fm=hh*60+mm+20;const fin=`${y}${m}${d}T${pad(Math.floor(fm/60)+5)}${pad(fm%60)}00Z`;
+    $("gcal").href=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Demo de Glow · "+v.negocio)}&dates=${ini}/${fin}&details=${encodeURIComponent("Demo de tu app de citas Glow ("+sel.modo+"). El equipo te escribe por WhatsApp.")}`;
+    paso(3);confeti();
+  }catch(e){btn.disabled=false;btn.textContent="Agendar mi demo gratis ✨";$("err").textContent="No se pudo enviar. Revisa tu conexión e intenta otra vez, o escríbenos a @glowapp.oficial."}
+};
+
+function confeti(){const c=$("conf"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;const cols=["#FFB547","#FF7A59","#4DD98C","#ffffff"];const P=Array.from({length:140},()=>({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,s:4+Math.random()*6,c:cols[Math.random()*4|0],r:Math.random()*6}));let t=0;(function f(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});if(++t<150)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
+</script>
+</body>
+</html>
