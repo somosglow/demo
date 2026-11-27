@@ -106,7 +106,7 @@ $("send").onclick=async()=>{
   const aM=fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({_subject:`🎉 Onboarding Glow: ${datos.negocio}`,_template:"table",_captcha:"false",...datos})}).then(async r=>{const j=await r.json().catch(()=>({}));return r.ok&&String(j.success)==="true"}).catch(()=>false);
   const [c,m]=await Promise.all([aC,aM]);
   if(c||m){$("form").style.display="none";$("done").style.display="block";scrollTo(0,0)}
-  else{b.disabled=false;b.textContent="Enviar mis datos ✨";$("err").innerHTML=`No pudimos enviar. <a style="color:#FFB547" target="_blank" href="https://wa.me/13058030996?text=${encodeURIComponent("Hola Juan, estos son los datos de mi negocio para Glow:\n"+Object.entries(datos).filter(e=>e[1]).map(e=>e[0]+": "+e[1]).join("\n"))}">Envíaselos a Juan por WhatsApp 👉</a>`}
+  else{b.disabled=false;b.textContent="Enviar mis datos ✨";$("err").innerHTML=`No pudimos enviar. <a style="color:#FFB547" target="_blank" href="https://wa.me/50761305139?text=${encodeURIComponent("Hola Juan, estos son los datos de mi negocio para Glow:\n"+Object.entries(datos).filter(e=>e[1]).map(e=>e[0]+": "+e[1]).join("\n"))}">Envíaselos a Juan por WhatsApp 👉</a>`}
 };
 </script>
 </body>
