@@ -46,6 +46,8 @@ function setup() {
 }
 
 // ---------- base de datos ----------
+// Sala de la videollamada: la de Zoom de Glow si está configurada; si no, una sala de Jitsi Meet única (gratis, sin cuenta para el cliente).
+function sala(id) { return cfg('ZOOM') || ('https://meet.jit.si/GlowDemo-' + (id || Utilities.getUuid().slice(0, 8))); }
 function hoja() { return libro().getSheetByName('Leads'); }
 function cab() { return hoja().getRange(1, 1, 1, hoja().getLastColumn()).getValues()[0]; }
 function filas() {
@@ -97,7 +99,7 @@ function nuevo(b, interno) {
     tipo: corto(b.tipo, 30), zona: corto(b.zona, 80), whatsapp: tel, email, acepta: b.acepta ? 'si' : (interno ? 'manual' : 'no'),
     modo: corto(b.modo, 30), equipo: corto(b.equipo, 20), fecha: corto(b.fecha, 10), hora: corto(b.hora, 5),
     estado: 'nuevo', dueno: corto(b.dueno || 'Juan', 20), ultimo_toque: '', proximo_toque: b.fecha ? '' : Utilities.formatDate(ahora, TZ, 'yyyy-MM-dd'),
-    toques: 0, notas: corto(b.notas, 500), reunion: corto(b.modo, 30) === 'Videollamada' ? cfg('ZOOM') : '', enviados: '{}', actualizado: ahora };
+    toques: 0, notas: corto(b.notas, 500), reunion: corto(b.modo, 30) === 'Videollamada' ? sala(null) : '', enviados: '{}', actualizado: ahora };
   hoja().appendRow(cab().map(k => f[k] === undefined ? '' : f[k]));
   f._fila = hoja().getLastRow();
   avisar(`🗓️ Nueva demo: ${f.negocio}`, `${f.tipo || 'Negocio'} en ${f.zona || '—'}${f.fecha ? ' · ' + fechaLarga(f.fecha) + ' ' + h12(f.hora) : ''} · ${f.modo}\nAbre Glow Ventas para llamar o escribir.`, 'high', f.id);
@@ -165,7 +167,7 @@ function contactar(f, paso, forzado) {
 // ---------- textos (firma Equipo Glow; sin promesas de cifras) ----------
 function mensajes(f) {
   const n = String(f.nombre || '').split(' ')[0] || 'hola', neg = f.negocio, cuando = f.fecha ? `${fechaLarga(f.fecha)} a las ${h12(f.hora)}` : '';
-  const z = f.reunion || cfg('ZOOM'), video = String(f.modo).indexOf('Video') >= 0;
+  const z = f.reunion || sala(f.id), video = String(f.modo).indexOf('Video') >= 0;
   const lugar = video ? (z ? `Entras aquí: ${z}` : 'Te enviamos el link de la videollamada antes de empezar.') :
     String(f.modo).indexOf('Visita') >= 0 ? 'Juan te visita en tu local; si cambia algo, responde este mensaje.' : 'Juan te llama a este número.';
   const prop = `${BASE}propuesta/?id=${f.id}`, reag = `${BASE}?o=reagendar&negocio=${encodeURIComponent(neg)}`;
