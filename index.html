@@ -131,12 +131,12 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
 .bars i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,var(--a),var(--b));height:0}.scr.on .bars i{animation:gr .8s forwards;}
 .scr.on .bars i:nth-child(2){animation-delay:.1s}.scr.on .bars i:nth-child(3){animation-delay:.2s}.scr.on .bars i:nth-child(4){animation-delay:.3s}.scr.on .bars i:nth-child(5){animation-delay:.4s}.scr.on .bars i:nth-child(6){animation-delay:.5s}
 @keyframes gr{to{height:var(--h)}}
-.chip{position:absolute;background:rgba(30,38,56,.92);border:1px solid #3a4666;border-radius:99px;padding:7px 12px;font-size:12.5px;white-space:nowrap;box-shadow:0 10px 25px rgba(0,0,0,.35);animation:fl 4s ease-in-out infinite}
+.fchip{position:absolute;background:rgba(30,38,56,.92);border:1px solid #3a4666;border-radius:99px;padding:7px 12px;font-size:12.5px;white-space:nowrap;box-shadow:0 10px 25px rgba(0,0,0,.35);animation:fl 4s ease-in-out infinite}
 .c1{left:2%;top:22%}.c2{right:2%;top:40%;animation-delay:1.2s}.c3{left:6%;bottom:16%;animation-delay:2.2s}
 @keyframes fl{50%{transform:translateY(-12px) translateZ(40px)}}
 .cap{min-height:44px;font-weight:600;font-size:16px;margin-top:4px;transition:opacity .3s}
 .dots{display:flex;gap:7px;justify-content:center;margin-top:4px}.dots i{width:8px;height:8px;border-radius:99px;background:#3a4666;cursor:pointer;transition:.3s}.dots i.on{width:22px;background:var(--a)}
-@media(prefers-reduced-motion:reduce){.phone,.chip,.pin,.cta{animation:none}}
+@media(prefers-reduced-motion:reduce){.phone,.fchip,.pin,.cta{animation:none}}
 </style>
 </head>
 <body>
@@ -195,9 +195,9 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
           <small class="ej">Datos de ejemplo</small>
         </div>
       </div>
-      <div class="chip c1">📲 Reserva 24/7</div>
-      <div class="chip c2">🎨 Tu marca</div>
-      <div class="chip c3">⏰ Avisos</div>
+      <div class="fchip c1">📲 Reserva 24/7</div>
+      <div class="fchip c2">🎨 Tu marca</div>
+      <div class="fchip c3">⏰ Avisos</div>
     </div>
     <p class="cap" id="cap"></p>
     <div class="dots" id="dots"></div>
