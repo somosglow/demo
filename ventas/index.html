@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F1420">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Glow Ventas">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Glow Ventas</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0F1420;--card:#171E2E;--line:#252E44;--tx:#F2F4F8;--mu:#8D97AD;--o1:#FFB547;--o2:#FF7A59;--ok:#3DD68C;--bad:#FF5C7A}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Poppins,system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:rgba(15,20,32,.92);backdrop-filter:blur(10px);padding:calc(12px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+header img{width:30px;height:30px;border-radius:8px}
+header h1{font-size:17px;font-weight:600;flex:1}
+header h1 span{background:linear-gradient(90deg,var(--o1),var(--o2));-webkit-background-clip:text;color:transparent}
+.ico{background:var(--card);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:7px 10px;font:inherit;font-size:13px}
+main{padding:14px 14px 0;max-width:640px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:20px;color:var(--o1)}.stat small{font-size:10.5px;color:var(--mu)}
+h2{font-size:13px;color:var(--mu);font-weight:500;margin:16px 2px 8px;text-transform:uppercase;letter-spacing:.06em}
+.lead{scroll-margin-top:76px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+.lead.due{border-color:var(--o2)}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.neg{font-weight:600;font-size:16px}.sub{color:var(--mu);font-size:12.5px;margin-top:2px}
+.pill{font-size:11px;padding:3px 9px;border-radius:99px;background:#252E44;white-space:nowrap}
+.pill.nuevo{background:rgba(255,181,71,.18);color:var(--o1)}.pill.cliente{background:rgba(61,214,140,.18);color:var(--ok)}.pill.perdido,.pill.no{background:rgba(255,92,122,.15);color:var(--bad)}
+.when{margin-top:8px;font-size:13.5px}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.a{flex:1 1 auto;min-width:64px;text-align:center;text-decoration:none;color:var(--tx);background:#202941;border:1px solid var(--line);border-radius:11px;padding:9px 8px;font-size:13px;font-family:inherit;cursor:pointer}
+.a.wa{background:#1f3b2c;border-color:#2c5a40}.a.pri{background:linear-gradient(90deg,var(--o1),var(--o2));color:#111;border:0;font-weight:600}
+.det{display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.lead.open .det{display:block}
+label{display:block;font-size:12px;color:var(--mu);margin:10px 0 4px}
+input,select,textarea{width:100%;background:#0F1420;border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:10px;font:inherit;font-size:14px}
+textarea{min-height:70px}
+.notas{white-space:pre-wrap;font-size:12.5px;color:var(--mu);background:#0F1420;border-radius:10px;padding:8px;margin-top:6px;max-height:140px;overflow:auto}
+.tpl{display:block;width:100%;text-align:left;margin-top:6px}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(23,30,46,.97);border-top:1px solid var(--line);display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:6}
+nav button{flex:1;background:none;border:0;color:var(--mu);font:inherit;font-size:11px;padding:4px}
+nav button b{display:block;font-size:20px;line-height:1.2}
+nav button.on{color:var(--o1)}
+.empty{color:var(--mu);text-align:center;padding:30px 10px;font-size:14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;font-size:14px;line-height:1.5}
+.box ol{padding-left:18px}.box code{background:#0F1420;padding:2px 6px;border-radius:6px;font-size:12.5px;word-break:break-all}
+.btn{display:block;width:100%;margin-top:12px;padding:13px;border:0;border-radius:12px;background:linear-gradient(90deg,var(--o1),var(--o2));color:#111;font:inherit;font-weight:600;font-size:15px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:#252E44;padding:10px 16px;border-radius:12px;font-size:13px;opacity:0;transition:.3s;z-index:9;pointer-events:none}
+.toast.show{opacity:1}
+.filt{display:flex;gap:6px;overflow:auto;padding-bottom:4px}
+.filt button{background:var(--card);border:1px solid var(--line);color:var(--mu);border-radius:99px;padding:6px 12px;font:inherit;font-size:12px;white-space:nowrap}
+.filt button.on{color:#111;background:var(--o1);border-color:var(--o1)}
+</style>
+</head>
+<body>
+<header><img src="icon-192.png" alt=""><h1>Glow <span>Ventas</span></h1><button class="ico" id="who"></button><button class="ico" id="ref">↻</button></header>
+<main id="main"></main>
+<nav id="nav">
+  <button data-v="hoy" class="on"><b>☀️</b>Hoy</button>
+  <button data-v="demos"><b>🗓️</b>Demos</button>
+  <button data-v="todos"><b>📋</b>Todos</button>
+  <button data-v="nuevo"><b>➕</b>Nuevo</button>
+  <button data-v="ajustes"><b>⚙️</b>Ajustes</button>
+</nav>
+<div class="toast" id="toast"></div>
+<script>
+const $=s=>document.querySelector(s);
+const LS={get:(k,d)=>{try{const v=localStorage.getItem("gv_"+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem("gv_"+k,JSON.stringify(v))}catch(e){}}};
+let API=LS.get("api",""),KEY=LS.get("key",""),YO=LS.get("yo","Juan");
+let DATA={leads:[],config:{}},VIEW="hoy",FIL="activos",abierto=location.hash.slice(1)||null;
+const CAD=[0,2,5,9,14];// días de los 5 toques (ventas/SEGUIMIENTO.md)
+const DEMO_LINK="https://somosglow.github.io/demo/";
+const ESTADOS=["nuevo","confirmado","demo hecha","propuesta","cliente","perdido","no contactar"];
+const cerrado=e=>["cliente","perdido","no contactar"].includes(e);
+
+// setup por link: .../ventas/#setup=<url>|<clave>
+if(location.hash.startsWith("#setup=")){const[u,k]=decodeURIComponent(location.hash.slice(7)).split("|");if(u&&k){API=u;KEY=k;LS.set("api",u);LS.set("key",k)}history.replaceState(null,"",location.pathname);abierto=null}
+
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2200)}
+const hoy=()=>new Date().toLocaleDateString("en-CA",{timeZone:"America/Panama"});
+const masDias=n=>{const d=new Date(hoy()+"T12:00:00");d.setDate(d.getDate()+n);return d.toLocaleDateString("en-CA")};
+const DIAS=["dom","lun","mar","mié","jue","vie","sáb"],MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+function fl(f){if(!f)return"";const d=new Date(String(f).slice(0,10)+"T12:00:00");return`${DIAS[d.getDay()]} ${d.getDate()} ${MES[d.getMonth()]}`}
+function h12(h){if(!h)return"";let[a,b]=String(h).split(":").map(Number);const p=a>=12?"pm":"am";a=a%12||12;return`${a}:${String(b).padStart(2,"0")} ${p}`}
+function tel(n){let d=String(n||"").replace(/\D/g,"");if(d.length===8||d.length===7)d="507"+d;return d}
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nom=l=>(l.nombre||"").split(" ")[0]||"";
+
+function plantillas(l){
+  const z=l.reunion||DATA.config.zoom||"";const cuando=l.fecha?`el ${fl(l.fecha)} a las ${h12(l.hora)}`:"";
+  const modo=(l.modo||"").toLowerCase();
+  return[
+    ["✅ Confirmar demo",`Hola ${nom(l)}, soy ${YO} de Glow 👋 Te confirmo la demo de ${l.negocio} ${cuando}${modo?" por "+modo:""}.${modo.includes("video")&&z?" Este es el link: "+z:""}${modo.includes("visita")?" ¿Me compartes la ubicación del local?":""} ¿Te queda bien?`],
+    ["⏰ Recordatorio (día de la demo)",`¡Hola ${nom(l)}! Hoy ${l.hora?"a las "+h12(l.hora)+" ":""}es nuestra demo de Glow para ${l.negocio}.${modo.includes("video")&&z?" Entras aquí: "+z:""} Nos vemos 🙌`],
+    ["🎯 Después de la demo",`Gracias por tu tiempo hoy, ${nom(l)} 🙏 Como viste, con Glow ${l.negocio} tiene su propia app de citas con su marca, recordatorios automáticos y tarjeta de fidelidad, y nosotros lo dejamos todo listo. Como fundador quedas en $175 de instalación (normal $350) y $35/mes congelado. Quedan pocos cupos, ¿lo dejamos listo esta semana?`],
+    ["💬 Seguimiento",`Hola ${nom(l)}, ¿pudiste pensar lo de Glow para ${l.negocio}? Si tienes alguna duda te la resuelvo en 2 minutos 😊`],
+    ["📅 Reagendar",`Hola ${nom(l)}, ¿te queda mejor otro día para ver la demo de Glow? Elige aquí el que te convenga 👉 ${DEMO_LINK}?o=juan&negocio=${encodeURIComponent(l.negocio||"")}`],
+    ["👋 Último mensaje",`Hola ${nom(l)}, no te quiero llenar de mensajes 🙏 Si más adelante quieres tu app de citas para ${l.negocio}, aquí estamos. ¡Mucho éxito!`],
+  ];
+}
+
+async function api(body){
+  if(!API||!KEY)throw new Error("sin config");
+  if(!body){const r=await fetch(`${API}?key=${encodeURIComponent(KEY)}`);const j=await r.json();if(!j.ok)throw new Error(j.error||"error");return j}
+  const r=await fetch(API,{method:"POST",body:JSON.stringify({...body,key:KEY})});const j=await r.json();if(!j.ok)throw new Error(j.error||"error");return j;
+}
+let vistos=new Set(LS.get("vistos",[]));
+async function cargar(silencio){
+  if(!API||!KEY){VIEW="ajustes";pintar();return}
+  try{const j=await api();DATA=j;
+    const nuevos=j.leads.filter(l=>!vistos.has(l.id));
+    if(vistos.size&&nuevos.length&&"Notification"in window&&Notification.permission==="granted")nuevos.forEach(l=>new Notification("🗓️ Nueva demo: "+l.negocio,{body:`${l.tipo||""} · ${l.zona||""} ${l.fecha?"· "+fl(l.fecha)+" "+h12(l.hora):""}`,icon:"icon-192.png"}));
+    j.leads.forEach(l=>vistos.add(l.id));LS.set("vistos",[...vistos]);
+    if(!silencio)toast("Actualizado");pintar();
+  }catch(e){if(!silencio)toast(e.message==="clave"?"Clave incorrecta":"Sin conexión con la hoja");pintar()}
+}
+async function upd(id,cambios,msg){
+  const l=DATA.leads.find(x=>x.id===id);Object.assign(l,cambios);pintar();
+  try{await api({action:"actualizar",id,...cambios});if(msg)toast(msg)}catch(e){toast("No se guardó: "+e.message)}
+}
+
+function tarjeta(l){
+  const due=!cerrado(l.estado)&&((l.proximo_toque&&String(l.proximo_toque).slice(0,10)<=hoy())||(l.fecha===hoy()));
+  const t=tel(l.whatsapp),z=l.reunion||(String(l.modo).includes("Video")?DATA.config.zoom:"");
+  const pc=l.estado==="no contactar"?"no":String(l.estado).split(" ")[0];
+  return`<div class="lead ${due?"due":""} ${abierto===l.id?"open":""}" id="L${l.id}">
+  <div class="top" onclick="abrir('${l.id}')"><div><div class="neg">${esc(l.negocio)}</div><div class="sub">${esc(l.nombre)} · ${esc(l.tipo)} · ${esc(l.zona)}</div></div><span class="pill ${pc}">${esc(l.estado)}</span></div>
+  ${l.fecha?`<div class="when">🗓️ <b>${fl(l.fecha)} · ${h12(l.hora)}</b> · ${esc(l.modo)}</div>`:""}
+  <div class="sub">Toques: ${l.toques||0}${l.proximo_toque?` · próximo: ${fl(l.proximo_toque)}`:""} · ${esc(l.dueno||"")} · vino de ${esc(l.origen||"—")}</div>
+  <div class="acts">
+    <a class="a" href="tel:+${t}">📞 Llamar</a>
+    <button class="a wa" onclick="abrir('${l.id}',1)">💬 WhatsApp</button>
+    ${z?`<a class="a pri" href="${esc(z)}" target="_blank" rel="noopener">🎥 Zoom</a>`:""}
+    ${String(l.modo).includes("Visita")?`<a class="a" target="_blank" rel="noopener" href="https://www.google.com/maps/search/${encodeURIComponent((l.negocio||"")+" "+(l.zona||"")+" Panamá")}">📍 Local</a>`:""}
+  </div>
+  <div class="det">
+    <label>Mensajes de WhatsApp (se abre con el texto listo y cuenta como toque)</label>
+    ${plantillas(l).map((p,i)=>`<button class="a tpl" onclick="wa('${l.id}',${i})">${p[0]}</button>`).join("")}
+    <label>Estado</label><select onchange="upd('${l.id}',{estado:this.value},'Estado guardado')">${ESTADOS.map(e=>`<option ${e===l.estado?"selected":""}>${e}</option>`).join("")}</select>
+    <label>Próximo seguimiento</label><input type="date" value="${String(l.proximo_toque||"").slice(0,10)}" onchange="upd('${l.id}',{proximo_toque:this.value},'Seguimiento agendado')">
+    <label>Link de la reunión (Zoom o Meet)</label><input value="${esc(l.reunion||"")}" placeholder="${esc(DATA.config.zoom||"https://zoom.us/j/…")}" onchange="upd('${l.id}',{reunion:this.value},'Link guardado')">
+    ${l.fecha?`<a class="a" style="display:block;margin-top:8px" target="_blank" rel="noopener" href="${gcal(l,z)}">📅 Agregar a mi calendario</a>`:""}
+    <label>Nota rápida</label><textarea id="n${l.id}" placeholder="Qué dijo, objeciones, cuándo volver a escribir…"></textarea>
+    <button class="a" style="width:100%;margin-top:6px" onclick="nota('${l.id}')">Guardar nota</button>
+    ${l.notas?`<div class="notas">${esc(l.notas)}</div>`:""}
+  </div></div>`;
+}
+function gcal(l,z){const[y,m,d]=String(l.fecha).split("-");const[hh,mm]=String(l.hora||"09:00").split(":").map(Number);const p=n=>String(n).padStart(2,"0");const fm=hh*60+mm+30;
+  return`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Demo Glow · "+l.negocio)}&dates=${y}${m}${d}T${p(hh+5)}${p(mm)}00Z/${y}${m}${d}T${p(Math.floor(fm/60)+5)}${p(fm%60)}00Z&details=${encodeURIComponent(`${l.nombre} · ${l.whatsapp}\n${l.modo}${z?"\n"+z:""}`)}`}
+function abrir(id,scroll){abierto=abierto===id&&!scroll?null:id;history.replaceState(null,"",abierto?"#"+abierto:location.pathname);pintar();if(scroll)document.getElementById("L"+id)?.scrollIntoView({behavior:"smooth",block:"start"})}
+function wa(id,i){
+  const l=DATA.leads.find(x=>x.id===id);const p=plantillas(l)[i];
+  window.open(`https://wa.me/${tel(l.whatsapp)}?text=${encodeURIComponent(p[1])}`,"_blank");
+  const n=Number(l.toques||0)+1;const prox=n<CAD.length?masDias(CAD[n]-CAD[n-1]):"";
+  const est=l.estado==="nuevo"&&i===0?"confirmado":l.estado;
+  upd(id,{toque:1,toques:n,toque_nota:`${YO}: WhatsApp «${p[0].replace(/^\S+\s/,"")}»`,proximo_toque:i===5?"":prox,estado:i===5&&!cerrado(l.estado)?"perdido":est},"Toque registrado");
+}
+function nota(id){const t=$("#n"+id).value.trim();if(!t)return;const l=DATA.leads.find(x=>x.id===id);
+  const linea=`${new Date().toLocaleString("es-PA",{timeZone:"America/Panama",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})} ${YO}: ${t}`;
+  upd(id,{notas:(l.notas?l.notas+"\n":"")+linea},"Nota guardada")}
+
+function pintar(){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===VIEW));
+  $("#who").textContent="👤 "+YO;
+  const L=DATA.leads||[],H=hoy(),m=$("#main");
+  if(VIEW==="ajustes")return ajustes(m);
+  if(VIEW==="nuevo")return nuevoForm(m);
+  const act=L.filter(l=>!cerrado(l.estado));
+  const stats=`<div class="stats"><div class="stat"><b>${L.filter(l=>l.fecha===H).length}</b><small>demos hoy</small></div><div class="stat"><b>${act.filter(l=>l.proximo_toque&&String(l.proximo_toque).slice(0,10)<=H).length}</b><small>seguimientos</small></div><div class="stat"><b>${act.length}</b><small>activos</small></div><div class="stat"><b>${L.filter(l=>l.estado==="cliente").length}</b><small>clientes</small></div></div>`;
+  if(VIEW==="hoy"){
+    const demos=L.filter(l=>l.fecha===H&&!cerrado(l.estado)).sort((a,b)=>String(a.hora).localeCompare(b.hora));
+    const nuevos=L.filter(l=>l.estado==="nuevo"&&l.fecha!==H);
+    const seg=act.filter(l=>l.proximo_toque&&String(l.proximo_toque).slice(0,10)<=H&&l.estado!=="nuevo"&&l.fecha!==H);
+    m.innerHTML=stats+`<h2>Demos de hoy</h2>${demos.map(tarjeta).join("")||'<div class="empty">Sin demos hoy</div>'}
+      <h2>Nuevos sin confirmar</h2>${nuevos.map(tarjeta).join("")||'<div class="empty">Todo confirmado 👌</div>'}
+      <h2>Seguimientos para hoy</h2>${seg.map(tarjeta).join("")||'<div class="empty">Nada pendiente</div>'}`;
+  }else if(VIEW==="demos"){
+    const pr=L.filter(l=>l.fecha&&l.fecha>=H&&!cerrado(l.estado)).sort((a,b)=>(a.fecha+a.hora).localeCompare(b.fecha+b.hora));
+    m.innerHTML=stats+`<h2>Próximas demos</h2>`+(pr.map(tarjeta).join("")||'<div class="empty">Aún no hay demos agendadas.<br>Cuando alguien agende en la página te llega el aviso.</div>');
+  }else{
+    const f={activos:l=>!cerrado(l.estado),...Object.fromEntries(ESTADOS.map(e=>[e,l=>l.estado===e]))};
+    const lista=L.filter(f[FIL]||f.activos).sort((a,b)=>String(b.creado).localeCompare(String(a.creado)));
+    m.innerHTML=stats+`<div class="filt">${["activos",...ESTADOS].map(e=>`<button class="${e===FIL?"on":""}" onclick="FIL='${e}';pintar()">${e}</button>`).join("")}</div><h2>${lista.length} prospectos</h2>`+(lista.map(tarjeta).join("")||'<div class="empty">Nada aquí</div>');
+  }
+}
+function nuevoForm(m){
+  m.innerHTML=`<div class="box"><b>Agregar prospecto</b> (de una llamada, visita o DM)
+  <label>Negocio</label><input id="fn"><label>Nombre del dueño</label><input id="fp"><label>WhatsApp</label><input id="fw" inputmode="tel">
+  <label>Tipo</label><select id="ft"><option>Barbería</option><option>Salón de belleza</option><option>Spa</option><option>Uñas</option><option>Estética</option><option>Otro</option></select>
+  <label>Zona</label><input id="fz"><label>¿Ya agendó demo? (opcional)</label><input id="fd" type="date"><input id="fh" type="time" style="margin-top:6px">
+  <label>Modo</label><select id="fm"><option>Videollamada</option><option>Llamada</option><option>Visita al local</option></select>
+  <label>Notas</label><textarea id="fx"></textarea><button class="btn" id="fg">Guardar</button></div>`;
+  $("#fg").onclick=async()=>{const b={action:"nuevo",origen:"manual-"+YO.toLowerCase(),negocio:$("#fn").value,nombre:$("#fp").value,whatsapp:$("#fw").value,tipo:$("#ft").value,zona:$("#fz").value,fecha:$("#fd").value,hora:$("#fh").value,modo:$("#fm").value,notas:$("#fx").value,dueno:YO};
+    try{await api(b);toast("Guardado");VIEW="hoy";cargar(1)}catch(e){toast("No se guardó: "+(e.message==="datos"?"falta negocio o WhatsApp":e.message))}};
+}
+function ajustes(m){
+  const topic=DATA.config.topic||"";
+  m.innerHTML=`<div class="box"><b>1. Conexión</b>
+  <label>URL de la hoja (Apps Script)</label><input id="sa" value="${esc(API)}" placeholder="https://script.google.com/macros/s/…/exec">
+  <label>Clave del equipo</label><input id="sk" value="${esc(KEY)}" type="password">
+  <label>¿Quién eres?</label><select id="sy"><option ${YO==="Juan"?"selected":""}>Juan</option><option ${YO==="Wander"?"selected":""}>Wander</option></select>
+  <button class="btn" id="sg">Guardar y conectar</button></div>
+  <div class="box"><b>2. Avisos en el celular</b><ol>
+  <li>Instala la app gratis <b>ntfy</b> (<a style="color:var(--o1)" href="https://play.google.com/store/apps/details?id=io.heckel.ntfy">Android</a> · <a style="color:var(--o1)" href="https://apps.apple.com/app/ntfy/id1625396347">iPhone</a>) y permite notificaciones.</li>
+  <li>Toca <b>+</b> y suscríbete a este tema:<br><code>${topic?esc(topic):"(conéctate primero)"}</code> ${topic?`<button class="ico" onclick="navigator.clipboard.writeText('${esc(topic)}');toast('Copiado')">Copiar</button>`:""}</li>
+  <li>Listo: te suena cada demo nueva, el recordatorio 1 hora antes y el resumen de las 7 AM.</li></ol>
+  <button class="btn" id="np">Activar avisos con la app abierta</button></div>
+  <div class="box"><b>3. Instalar en el teléfono</b><br>Android (Chrome): menú ⋮ → <b>Agregar a la pantalla principal</b>.<br>iPhone (Safari): botón Compartir → <b>Agregar a inicio</b>.</div>
+  <div class="box"><b>Link de Zoom del equipo</b> (se manda solo en las demos por videollamada)
+  <input id="sz" value="${esc(DATA.config.zoom||"")}" placeholder="https://zoom.us/j/…"><button class="btn" id="szg">Guardar link</button></div>`;
+  $("#sg").onclick=()=>{API=$("#sa").value.trim();KEY=$("#sk").value.trim();YO=$("#sy").value;LS.set("api",API);LS.set("key",KEY);LS.set("yo",YO);VIEW="hoy";cargar()};
+  $("#np").onclick=async()=>{if(!("Notification"in window))return toast("Este navegador no permite avisos; usa ntfy");const p=await Notification.requestPermission();toast(p==="granted"?"Avisos activados":"Avisos bloqueados")};
+  $("#szg").onclick=async()=>{try{await api({action:"config",zoom:$("#sz").value.trim()});toast("Link guardado");cargar(1)}catch(e){toast("Error: "+e.message)}};
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;pintar();scrollTo(0,0)});
+$("#ref").onclick=()=>cargar();
+$("#who").onclick=()=>{YO=YO==="Juan"?"Wander":"Juan";LS.set("yo",YO);pintar();toast("Ahora eres "+YO)};
+setInterval(()=>{if(document.visibilityState==="visible")cargar(1)},60000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")cargar(1)});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+pintar();cargar(1);
+</script>
+</body>
+</html>

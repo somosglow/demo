@@ -169,6 +169,7 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
 
 <script>
 const ENDPOINT="https://formsubmit.co/ajax/somosglowapp@gmail.com";
+const CRM="";// URL del Apps Script de Glow Ventas (se llena al instalarlo)
 const TZ="America/Panama";
 const HORAS=["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
 const DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
@@ -205,7 +206,10 @@ $("send").onclick=async()=>{
   if(!sel.modo)return $("err").textContent="Elige cómo prefieres la demo.";
   const btn=$("send");btn.disabled=true;btn.textContent="Agendando…";
   const datos={_subject:`🗓️ Nueva demo Glow: ${v.negocio} — ${fechaLarga(sel.dia)} ${h12(sel.hora)}`,_template:"table",_captcha:"false",Fecha:fechaLarga(sel.dia),Hora:h12(sel.hora),"Fecha ISO":`${sel.dia} ${sel.hora} (Panamá)`,Nombre:v.nombre,Negocio:v.negocio,Tipo:sel.tipo,Zona:v.zona,WhatsApp:v.tel,"Cómo":sel.modo,Equipo:v.equipo||"—",Origen:q.get("o")||"directo"};
-  try{const r=await fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(datos)});const j=await r.json().catch(()=>({}));if(!r.ok||String(j.success)!=="true")throw 0;
+  const lead={action:"nuevo",origen:q.get("o")||"directo",nombre:v.nombre,negocio:v.negocio,tipo:sel.tipo,zona:v.zona,whatsapp:v.tel,modo:sel.modo,equipo:v.equipo,fecha:sel.dia,hora:sel.hora};
+  const aCRM=CRM?fetch(CRM,{method:"POST",body:JSON.stringify(lead)}).then(r=>r.json()).then(j=>j.ok===true).catch(()=>false):Promise.resolve(false);
+  const aMail=fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(datos)}).then(async r=>{const j=await r.json().catch(()=>({}));return r.ok&&String(j.success)==="true"}).catch(()=>false);
+  try{const[okC,okM]=await Promise.all([aCRM,aMail]);if(!okC&&!okM)throw 0;
     $("okName").textContent=v.nombre.split(" ")[0];$("okText").textContent=`Tu demo de ${v.negocio} quedó para el ${fechaLarga(sel.dia)} a las ${h12(sel.hora)} (${sel.modo.toLowerCase()}).`;
     const[y,m,d]=sel.dia.split("-");const[hh,mm]=sel.hora.split(":").map(Number);const pad=n=>String(n).padStart(2,"0");const ini=`${y}${m}${d}T${pad(hh+5)}${pad(mm)}00Z`;const fm=hh*60+mm+20;const fin=`${y}${m}${d}T${pad(Math.floor(fm/60)+5)}${pad(fm%60)}00Z`;
     $("gcal").href=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Demo de Glow · "+v.negocio)}&dates=${ini}/${fin}&details=${encodeURIComponent("Demo de tu app de citas Glow ("+sel.modo+"). El equipo te escribe por WhatsApp.")}`;
