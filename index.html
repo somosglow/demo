@@ -147,6 +147,18 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
 .plan h3{font-size:18px}.pr{font-size:14px;color:var(--soft)}.pr b{font-size:32px;color:#fff}.pr em{font-style:normal;color:var(--ok);font-size:12.5px;margin-left:4px}
 .inst{font-size:13.5px;margin:2px 0 8px}.inst b{color:var(--a)}.inst s{color:#6f7890;margin-left:5px}
 .plan ul{list-style:none;font-size:13.5px}.plan li{padding:4px 0 4px 22px;position:relative}.plan li:before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700}
+
+.tabs{position:sticky;top:0;z-index:20;display:flex;gap:4px;background:rgba(15,20,32,.92);backdrop-filter:blur(10px);border:1px solid #34405c;border-radius:16px;padding:5px;margin:0 0 16px}
+.tabs button{flex:1;border:0;background:none;color:var(--soft);font:inherit;font-size:13.5px;font-weight:600;padding:11px 4px;border-radius:12px;cursor:pointer;transition:.2s}
+.tabs button.on{background:linear-gradient(90deg,var(--a),var(--b));color:#111}
+.panel{display:none;animation:up .4s}.panel.on{display:block}
+.showcta.alt{background:var(--card);color:#fff;border:1.5px solid var(--a);box-shadow:none;animation:none}
+.pick{display:block;width:100%;margin-top:12px;padding:12px;border-radius:12px;border:0;background:linear-gradient(90deg,var(--a),var(--b));color:#111;font:inherit;font-weight:700;cursor:pointer}
+.pick.ghost{background:none;border:1.5px solid var(--a);color:var(--a)}.pick.pro{background:linear-gradient(90deg,#8B7CFF,#C77DFF);color:#fff}
+.cupos{margin-top:10px}.cbar{height:9px;background:rgba(255,255,255,.12);border-radius:9px;overflow:hidden}.cbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--a),var(--b));transition:1s}
+.cupos b{display:block;margin-top:6px;font-size:14px;color:#fff}
+.planpick{background:var(--card);border:1px dashed #4a5570;border-radius:14px;padding:11px 14px;margin-bottom:12px;font-size:13.5px;color:var(--soft)}.planpick b{color:#fff}.planpick.set{border:1.5px solid var(--a)}
+.planpick button{background:none;border:0;color:var(--a);font:inherit;font-weight:600;cursor:pointer;margin-left:6px}
 </style>
 </head>
 <body>
@@ -160,6 +172,8 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
     <p class="sub">Te armamos una demo con el nombre de tu negocio. 20 minutos, gratis y sin compromiso.</p>
   </header>
 
+  <nav class="tabs" id="tabs"><button class="on" data-t="pn1">✨ Cómo funciona</button><button data-t="pn2">💎 Planes</button><button data-t="pn3">📅 Agendar</button></nav>
+  <div class="panel on" id="pn1">
   <div class="perks">
     <div class="perk" style="animation-delay:.1s"><b>📲</b> Reservas en 3 toques</div>
     <div class="perk" style="animation-delay:.2s"><b>⏰</b> Recordatorios automáticos</div>
@@ -211,27 +225,46 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
     </div>
     <p class="cap" id="cap"></p>
     <div class="dots" id="dots"></div>
-    <a class="showcta" href="#card" onclick="document.getElementById('card').scrollIntoView({behavior:'smooth'});return false">📅 Quiero verlo con mi negocio · Agendar mi reunión</a>
+    <a class="showcta" href="#" onclick="tab('pn2');return false">💎 Ver planes y precios</a><a class="showcta alt" href="#" onclick="tab('pn3');return false">📅 Quiero verlo con mi negocio · Agendar mi reunión</a>
     <small class="showsub">Elige día y hora abajo y te conectamos por videollamada, llamada o en tu local.</small>
   </section>
+  </div>
 
+  <div class="panel" id="pn2">
   <section class="plans" id="planes">
-    <div class="fund"><b>🚀 Precio de fundador</b><span>Los primeros 10 negocios pagan la mitad de la instalación y congelan su mensualidad en $35.</span></div>
+    <div class="fund"><b>🚀 Precio de fundador</b><span>Los primeros 10 negocios pagan la mitad de la instalación y congelan su mensualidad en $35.</span>
+      <div class="cupos"><div class="cbar"><i id="cbar"></i></div><b id="ctext">Quedan 10 de 10 cupos</b></div></div>
     <div class="tog" role="group" aria-label="Forma de pago"><button class="on" data-p="m">Mensual</button><button data-p="a">Anual <em>2 meses gratis</em></button></div>
     <div class="plan best"><span class="pb">Fundador · solo 10 cupos</span>
       <h3>Esencial</h3><div class="pr"><b data-m="$35" data-a="$350">$35</b><span data-m="/mes" data-a="/año">/mes</span> <em>congelado</em></div>
       <div class="inst">Instalación <b>$175</b> <s>$350</s></div>
       <ul><li>App de citas con tu logo, colores y precios</li><li>Reserva en 3 toques, sin registrarse</li><li>Recordatorios automáticos</li><li>Tarjeta de fidelidad digital</li><li>Perfil de Google optimizado</li><li>QR y material para tu local</li><li>Instalación y capacitación hechas por nosotros</li></ul>
+      <button class="pick" onclick="elegir('Esencial Fundador')">Elegir Esencial Fundador</button>
     </div>
-    <div class="plan"><h3>Esencial</h3><div class="pr"><b data-m="$35" data-a="$350">$35</b><span data-m="/mes" data-a="/año">/mes</span></div><div class="inst">Instalación <b>$350</b></div><ul><li>Todo lo del plan Esencial</li><li>Precio normal después de los 10 fundadores</li></ul></div>
+    <div class="plan"><h3>Esencial</h3><div class="pr"><b data-m="$35" data-a="$350">$35</b><span data-m="/mes" data-a="/año">/mes</span></div><div class="inst">Instalación <b>$350</b></div><ul><li>Todo lo del plan Esencial</li><li>Precio normal después de los 10 fundadores</li></ul><button class="pick ghost" onclick="elegir('Esencial')">Elegir Esencial</button></div>
     <div class="plan pro"><span class="pb pro">Pro · Preventa</span><h3>Pro</h3><div class="pr"><b data-m="$79" data-a="$790">$79</b><span data-m="/mes" data-a="/año">/mes</span></div>
       <ul><li>Todo lo de Esencial</li><li>Asistente con IA en tu WhatsApp que responde y agenda citas por ti</li><li>Recordatorios y confirmaciones por WhatsApp</li><li>Depósitos y pagos de citas con Yappy y tarjeta</li><li>Pide reseñas en Google después de cada cita</li><li>Campañas para traer de vuelta a clientes que no vuelven</li><li>Reportes de ventas, servicios y equipo</li><li>Varias sucursales en una sola cuenta</li><li>Soporte prioritario</li></ul>
       <p class="pnote">Preventa: aparta tu plan Pro hoy. Se activa por partes a medida que cada función queda probada, y no te cobramos la diferencia hasta que esté activa.</p>
+      <button class="pick pro" onclick="elegir('Pro (preventa)')">Apartar Pro</button>
     </div>
-    <a class="showcta" href="#card" onclick="document.getElementById('card').scrollIntoView({behavior:'smooth'});return false">📅 Quiero mi cupo de fundador · Agendar mi reunión</a>
+    <a class="showcta" href="#" onclick="elegir('Esencial Fundador');return false">📅 Quiero mi cupo de fundador · Agendar mi reunión</a>
   </section>
-  <script>document.querySelectorAll(".tog button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tog button").forEach(x=>x.classList.toggle("on",x===b));const k=b.dataset.p;document.querySelectorAll("#planes [data-m]").forEach(e=>e.textContent=e.dataset[k])})</script>
+  <script>
+const CUPOS_TOMADOS=0;// fundadores que ya pagaron (Elena/Juan lo actualizan; el sistema también lo lee de la hoja)
+let FREQ="Mensual";window.PLAN="";
+function tab(id){document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on",p.id===id));document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===id));document.getElementById("tabs").scrollIntoView({behavior:"smooth",block:"start"})}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.t));
+function elegir(p){window.PLAN=p+" · "+FREQ;document.getElementById("planName").textContent=window.PLAN;document.getElementById("planpick").classList.add("set");tab("pn3")}
+function pintaCupos(t){t=Math.max(0,Math.min(10,t));document.getElementById("cbar").style.width=(t*10)+"%";document.getElementById("ctext").textContent=t>=10?"Cupos de fundador agotados":`Quedan ${10-t} de 10 cupos`}
+pintaCupos(CUPOS_TOMADOS);
+addEventListener("load",()=>{try{const C=typeof CRM!=="undefined"?CRM:"";if(C)fetch(C+"?action=cupos").then(r=>r.json()).then(j=>{if(j.ok&&typeof j.tomados==="number")pintaCupos(j.tomados)}).catch(()=>{})}catch(e){}});
+</script>
+  <script>document.querySelectorAll(".tog button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tog button").forEach(x=>x.classList.toggle("on",x===b));const k=b.dataset.p;FREQ=k==="a"?"Anual":"Mensual";document.querySelectorAll("#planes [data-m]").forEach(e=>e.textContent=e.dataset[k])})</script>
 
+  </div>
+
+  <div class="panel" id="pn3">
+  <div class="planpick" id="planpick">Plan elegido: <b id="planName">Aún no eliges · lo vemos en la reunión</b> <button type="button" onclick="tab('pn2')">Cambiar</button></div>
   <div class="card" id="card">
     <div class="steps"><div class="on" id="p1"><span></span></div><div id="p2"><span></span></div><div id="p3"><span></span></div></div>
 
@@ -289,8 +322,9 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
 
   <div class="faq">
     <details><summary>¿Qué pasa en la demo?</summary><p>Te mostramos tu app de reservas con el nombre de tu negocio, hacemos una cita de prueba en vivo y ves los recordatorios, la tarjeta de fidelidad y el panel del dueño.</p></details>
-    <details><summary>¿Cuánto cuesta Glow?</summary><p>Para los 10 negocios fundadores: $175 de instalación (normal $350) + $35 al mes, con el precio congelado. La demo es gratis y sin compromiso.</p></details>
+    <details><summary>¿Cuánto cuesta Glow?</summary><p>Mira la pestaña Planes: Esencial desde $35 al mes (o anual con 2 meses gratis) y Pro en preventa. Los 10 negocios fundadores pagan $175 de instalación en vez de $350 y congelan su mensualidad. La demo es gratis y sin compromiso.</p></details>
     <details><summary>Ya uso otra app de citas, ¿sirve igual?</summary><p>Sí. La diferencia es que con Glow tu cliente reserva en tu propia app, con tu marca, y nosotros te lo montamos todo e instalamos el material QR en tu local.</p></details>
+  </div>
   </div>
 
   <footer>Glow · Panamá · <a href="https://instagram.com/glowapp.oficial" target="_blank" rel="noopener">@glowapp.oficial</a></footer>
@@ -337,8 +371,8 @@ $("send").onclick=async()=>{
   if(v.email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v.email))return $("err").textContent="Revisa tu correo.";
   if(!$("acepta").checked)return $("err").textContent="Marca la casilla para poder confirmarte la demo.";
   const btn=$("send");btn.disabled=true;btn.textContent="Agendando…";
-  const datos={_subject:`🗓️ Nueva demo Glow: ${v.negocio} — ${fechaLarga(sel.dia)} ${h12(sel.hora)}`,_template:"table",_captcha:"false",Fecha:fechaLarga(sel.dia),Hora:h12(sel.hora),"Fecha ISO":`${sel.dia} ${sel.hora} (Panamá)`,Nombre:v.nombre,Negocio:v.negocio,Tipo:sel.tipo,Zona:v.zona,WhatsApp:v.tel,Correo:v.email||"—","Cómo":sel.modo,Equipo:v.equipo||"—",Origen:q.get("o")||"directo"};
-  const lead={action:"nuevo",origen:q.get("o")||"directo",nombre:v.nombre,negocio:v.negocio,tipo:sel.tipo,zona:v.zona,whatsapp:v.tel,modo:sel.modo,equipo:v.equipo,email:v.email,acepta:true,fecha:sel.dia,hora:sel.hora};
+  const datos={_subject:`🗓️ Nueva demo Glow: ${v.negocio} — ${fechaLarga(sel.dia)} ${h12(sel.hora)}`,_template:"table",_captcha:"false",Fecha:fechaLarga(sel.dia),Hora:h12(sel.hora),"Fecha ISO":`${sel.dia} ${sel.hora} (Panamá)`,Nombre:v.nombre,Negocio:v.negocio,Tipo:sel.tipo,Zona:v.zona,WhatsApp:v.tel,Correo:v.email||"—","Cómo":sel.modo,Equipo:v.equipo||"—",Origen:q.get("o")||"directo",Plan:window.PLAN||"Por definir"};
+  const lead={action:"nuevo",origen:q.get("o")||"directo",nombre:v.nombre,negocio:v.negocio,tipo:sel.tipo,zona:v.zona,whatsapp:v.tel,modo:sel.modo,equipo:v.equipo,email:v.email,acepta:true,fecha:sel.dia,hora:sel.hora,notas:window.PLAN?"Plan elegido: "+window.PLAN:""};
   const aCRM=CRM?fetch(CRM,{method:"POST",body:JSON.stringify(lead)}).then(r=>r.json()).then(j=>j.ok===true).catch(()=>false):Promise.resolve(false);
   const aMail=fetch(ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify(datos)}).then(async r=>{const j=await r.json().catch(()=>({}));return r.ok&&String(j.success)==="true"}).catch(()=>false);
   try{const[okC,okM]=await Promise.all([aCRM,aMail]);if(!okC&&!okM)throw 0;

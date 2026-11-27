@@ -69,6 +69,7 @@ function doGet(e) {
     return out({ ok: true, negocio: f.negocio, nombre: String(f.nombre).split(' ')[0], tipo: f.tipo,
       pago: cfg('PAGO_URL'), video: cfg('VIDEO_URL'), wa: cfg('WA_JUAN') });
   }
+  if (q.action === 'cupos') return out({ ok: true, tomados: filas().filter(x => x.estado === 'cliente').length });
   if (q.key !== cfg('CLAVE')) return out({ ok: false, error: 'clave' });
   return out({ ok: true, leads: filas(), config: { zoom: cfg('ZOOM'), topic: cfg('TOPIC'), estados: ESTADOS,
     pago: cfg('PAGO_URL'), video: cfg('VIDEO_URL'), wa_api: !!(cfg('WA_TOKEN') && cfg('WA_PHONE_ID')), auto: cfg('AUTO', 'si') } });
