@@ -172,7 +172,8 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
 
 <script>
 const ENDPOINT="https://formsubmit.co/ajax/somosglowapp@gmail.com";
-const CRM="";// URL del Apps Script de Glow Ventas (se llena al instalarlo)
+const CRM="";
+const WA_GLOW="";// número de WhatsApp de Juan/Glow con 507, respaldo si falla el envío// URL del Apps Script de Glow Ventas (se llena al instalarlo)
 const TZ="America/Panama";
 const HORAS=["09:00","09:30","10:00","10:30","11:00","11:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30"];
 const DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
@@ -219,7 +220,9 @@ $("send").onclick=async()=>{
     const[y,m,d]=sel.dia.split("-");const[hh,mm]=sel.hora.split(":").map(Number);const pad=n=>String(n).padStart(2,"0");const ini=`${y}${m}${d}T${pad(hh+5)}${pad(mm)}00Z`;const fm=hh*60+mm+20;const fin=`${y}${m}${d}T${pad(Math.floor(fm/60)+5)}${pad(fm%60)}00Z`;
     $("gcal").href=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Demo de Glow · "+v.negocio)}&dates=${ini}/${fin}&details=${encodeURIComponent("Demo de tu app de citas Glow ("+sel.modo+"). El equipo te escribe por WhatsApp.")}`;
     paso(3);confeti();
-  }catch(e){btn.disabled=false;btn.textContent="Agendar mi demo gratis ✨";$("err").textContent="No se pudo enviar. Revisa tu conexión e intenta otra vez, o escríbenos a @glowapp.oficial."}
+  }catch(e){btn.disabled=false;btn.textContent="Agendar mi demo gratis ✨";
+    const t=`Hola Glow 👋 Quiero mi demo gratis.\nNombre: ${v.nombre}\nNegocio: ${v.negocio} (${sel.tipo})\nZona: ${v.zona}\nWhatsApp: ${v.tel}\nDía: ${sel.dia} ${sel.hora}\nCómo: ${sel.modo}`;
+    $("err").innerHTML=WA_GLOW?`No pudimos guardar tu solicitud automáticamente. <a style="color:#FFB547;font-weight:600" href="https://wa.me/${WA_GLOW}?text=${encodeURIComponent(t)}" target="_blank" rel="noopener">Toca aquí para enviárnosla por WhatsApp 👉</a>`:"No se pudo enviar. Intenta otra vez o escríbenos por Instagram a @glowapp.oficial."}
 };
 
 function confeti(){const c=$("conf"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;const cols=["#FFB547","#FF7A59","#4DD98C","#ffffff"];const P=Array.from({length:140},()=>({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,s:4+Math.random()*6,c:cols[Math.random()*4|0],r:Math.random()*6}));let t=0;(function f(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});if(++t<150)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
