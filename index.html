@@ -312,6 +312,7 @@ addEventListener("load",()=>{try{const C=typeof CRM!=="undefined"?CRM:"";if(C)fe
         <h2>¡Listo, <span id="okName"></span>! 🎉</h2>
         <p class="hint" id="okText"></p>
         <p class="hint">El equipo de Glow te escribe por WhatsApp para confirmar. Mientras tanto, ve pensando en tu logo y tus colores 😉</p>
+        <a class="btn" id="pres" target="_blank" rel="noopener" style="display:block;text-decoration:none;margin-bottom:10px">🎬 Ver mi presentación personalizada</a>
         <a class="btn" id="gcal" target="_blank" rel="noopener" style="display:block;text-decoration:none">Agregar a mi calendario</a>
         <a class="ghost" href="https://instagram.com/glowapp.oficial" target="_blank" rel="noopener">Síguenos en Instagram @glowapp.oficial</a>
       </div>
@@ -379,6 +380,7 @@ $("send").onclick=async()=>{
     $("okName").textContent=v.nombre.split(" ")[0];$("okText").textContent=`Tu demo de ${v.negocio} quedó para el ${fechaLarga(sel.dia)} a las ${h12(sel.hora)} (${sel.modo.toLowerCase()}).`;
     const[y,m,d]=sel.dia.split("-");const[hh,mm]=sel.hora.split(":").map(Number);const pad=n=>String(n).padStart(2,"0");const ini=`${y}${m}${d}T${pad(hh+5)}${pad(mm)}00Z`;const fm=hh*60+mm+20;const fin=`${y}${m}${d}T${pad(Math.floor(fm/60)+5)}${pad(fm%60)}00Z`;
     $("gcal").href=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Demo de Glow · "+v.negocio)}&dates=${ini}/${fin}&details=${encodeURIComponent("Demo de tu app de citas Glow ("+sel.modo+"). El equipo te escribe por WhatsApp.")}`;
+    $("pres").href=`presentacion/?negocio=${encodeURIComponent(v.negocio)}&nombre=${encodeURIComponent(v.nombre)}&tipo=${encodeURIComponent(sel.tipo)}&zona=${encodeURIComponent(v.zona)}&equipo=${encodeURIComponent(v.equipo||"")}&fecha=${sel.dia}&hora=${sel.hora}&modo=${encodeURIComponent(sel.modo)}`;
     paso(3);confeti();
   }catch(e){btn.disabled=false;btn.textContent="Agendar mi demo gratis ✨";
     const t=`Hola Glow 👋 Quiero mi demo gratis.\nNombre: ${v.nombre}\nNegocio: ${v.negocio} (${sel.tipo})\nZona: ${v.zona}\nWhatsApp: ${v.tel}\nDía: ${sel.dia} ${sel.hora}\nCómo: ${sel.modo}`;

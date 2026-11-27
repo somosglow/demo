@@ -67,6 +67,7 @@ nav button.on{color:var(--o1)}
   <button data-v="demos"><b>🗓️</b>Demos</button>
   <button data-v="todos"><b>📋</b>Todos</button>
   <button data-v="nuevo"><b>➕</b>Nuevo</button>
+  <button data-v="recursos"><b>🧰</b>Recursos</button>
   <button data-v="ajustes"><b>⚙️</b>Ajustes</button>
 </nav>
 <div class="toast" id="toast"></div>
@@ -146,6 +147,14 @@ function tarjeta(l){
     ${["nuevo","confirmado"].includes(l.estado)?`<button class="a pri" style="width:100%;margin-top:10px" onclick="upd('${l.id}',{estado:'demo hecha'},'Demo hecha: la propuesta sale sola')">✅ Demo hecha → enviar propuesta</button>`:""}
     <a class="a" style="display:block;margin-top:8px" target="_blank" rel="noopener" href="${DEMO_LINK}propuesta/?id=${l.id}&negocio=${encodeURIComponent(l.negocio||"")}">📄 Ver su propuesta</a>
     ${l.estado==="cliente"?`<button class="a wa" style="width:100%;margin-top:8px" onclick="window.open('https://wa.me/${tel(l.whatsapp)}?text='+encodeURIComponent('¡Bienvenido a Glow, ${esc(nom(l))}! 🎉 Llena aquí los datos de tu app (5 min): ${DEMO_LINK}onboarding/?id=${l.id}&negocio=${encodeURIComponent(l.negocio||"")}'),'_blank')">📝 Enviar formulario de onboarding</button>`:""}
+    <label>Enviar por WhatsApp (se abre con el texto listo)</label>
+    <div class="acts" style="margin-top:4px">
+      <button class="a" onclick="mandar('${l.id}','pres')">🎬 Presentación</button>
+      <button class="a" onclick="mandar('${l.id}','vitrina')">📱 Su app en 3D</button>
+      <button class="a" onclick="mandar('${l.id}','planes')">💎 Planes</button>
+      <button class="a" onclick="mandar('${l.id}','prop')">📄 Propuesta</button>
+      ${DATA.config.video?`<button class="a" onclick="mandar('${l.id}','video')">▶️ Video</button>`:""}
+    </div>
     <label>Estado</label><select onchange="upd('${l.id}',{estado:this.value},'Estado guardado')">${ESTADOS.map(e=>`<option ${e===l.estado?"selected":""}>${e}</option>`).join("")}</select>
     <label>Próximo seguimiento</label><input type="date" value="${String(l.proximo_toque||"").slice(0,10)}" onchange="upd('${l.id}',{proximo_toque:this.value},'Seguimiento agendado')">
     <label>Link de la reunión (Zoom o Meet)</label><input value="${esc(l.reunion||"")}" placeholder="${esc(DATA.config.zoom||"https://zoom.us/j/…")}" onchange="upd('${l.id}',{reunion:this.value},'Link guardado')">
@@ -165,6 +174,14 @@ function wa(id,i){
   const est=l.estado==="nuevo"&&i===0?"confirmado":l.estado;
   upd(id,{toque:1,toques:n,toque_nota:`${YO}: WhatsApp «${p[0].replace(/^\S+\s/,"")}»`,proximo_toque:i===5?"":prox,estado:i===5&&!cerrado(l.estado)?"perdido":est},"Toque registrado");
 }
+function links(l){const n=encodeURIComponent(l.negocio||""),qs=`negocio=${n}&nombre=${encodeURIComponent(l.nombre||"")}&tipo=${encodeURIComponent(l.tipo||"")}&zona=${encodeURIComponent(l.zona||"")}&equipo=${encodeURIComponent(l.equipo||"")}${l.fecha?`&fecha=${l.fecha}&hora=${l.hora}`:""}&modo=${encodeURIComponent(l.modo||"")}&id=${l.id}`;
+  return{pres:[`Hola ${nom(l)} 👋 Te preparé una presentación de cómo se vería Glow en ${l.negocio}. Mírala aquí (1 minuto):`,`${DEMO_LINK}presentacion/?${qs}`],
+  vitrina:[`Mira cómo se vería la app de ${l.negocio} 📱✨`,`${DEMO_LINK}?negocio=${n}&o=juan`],
+  planes:[`Estos son nuestros planes. Como fundador quedas en $175 de instalación (normal $350) y $35/mes congelado 👇`,`${DEMO_LINK}?negocio=${n}&o=juan#planes`],
+  prop:[`Aquí está tu propuesta personalizada para ${l.negocio} 👇`,`${DEMO_LINK}propuesta/?id=${l.id}&negocio=${n}`],
+  video:[`Mira este video de Glow 🎬`,DATA.config.video||""]}}
+function mandar(id,k){const l=DATA.leads.find(x=>x.id===id),m=links(l)[k];window.open(`https://wa.me/${tel(l.whatsapp)}?text=${encodeURIComponent(m[0]+"\n"+m[1])}`,"_blank");
+  upd(id,{toque:1,toques:Number(l.toques||0)+1,toque_nota:`${YO}: envió ${k}`},"Enviado y registrado")}
 function nota(id){const t=$("#n"+id).value.trim();if(!t)return;const l=DATA.leads.find(x=>x.id===id);
   const linea=`${new Date().toLocaleString("es-PA",{timeZone:"America/Panama",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})} ${YO}: ${t}`;
   upd(id,{notas:(l.notas?l.notas+"\n":"")+linea},"Nota guardada")}
@@ -174,6 +191,7 @@ function pintar(){
   $("#who").textContent="👤 "+YO;
   const L=DATA.leads||[],H=hoy(),m=$("#main");
   if(VIEW==="ajustes")return ajustes(m);
+  if(VIEW==="recursos")return recursos(m);
   if(VIEW==="nuevo")return nuevoForm(m);
   const act=L.filter(l=>!cerrado(l.estado));
   const stats=`<div class="stats"><div class="stat"><b>${L.filter(l=>l.fecha===H).length}</b><small>demos hoy</small></div><div class="stat"><b>${act.filter(l=>l.proximo_toque&&String(l.proximo_toque).slice(0,10)<=H).length}</b><small>seguimientos</small></div><div class="stat"><b>${act.length}</b><small>activos</small></div><div class="stat"><b>${L.filter(l=>l.estado==="cliente").length}</b><small>clientes</small></div></div>`;
@@ -193,6 +211,10 @@ function pintar(){
     m.innerHTML=stats+`<div class="filt">${["activos",...ESTADOS].map(e=>`<button class="${e===FIL?"on":""}" onclick="FIL='${e}';pintar()">${e}</button>`).join("")}</div><h2>${lista.length} prospectos</h2>`+(lista.map(tarjeta).join("")||'<div class="empty">Nada aquí</div>');
   }
 }
+function recursos(m){const R=[["🌐 Página de demos","Para Instagram, bio y mensajes",`${DEMO_LINK}?o=juan`],["📱 Su app en 3D","Agrega ?negocio=Nombre para personalizar",`${DEMO_LINK}?negocio=Tu%20Negocio`],["🎬 Presentación de ejemplo","Cada lead tiene la suya en su ficha",`${DEMO_LINK}presentacion/?negocio=Studio%20Bella&tipo=Sal%C3%B3n%20de%20belleza&nombre=Mar%C3%ADa`],["💎 Planes y precios","Mensual o anual, fundador y Pro",`${DEMO_LINK}#planes`],["📄 Propuesta de ejemplo","La real sale sola al marcar Demo hecha",`${DEMO_LINK}propuesta/?negocio=Studio%20Bella`],["📝 Onboarding","Para clientes que ya pagaron",`${DEMO_LINK}onboarding/`],["📸 Instagram de Glow","Videos y Reels",`https://www.instagram.com/glowapp.oficial/`]];
+  if(DATA.config.video)R.splice(1,0,["▶️ Video de la propuesta","",DATA.config.video]);
+  m.innerHTML=`<h2>Recursos para vender</h2>`+R.map(r=>`<div class="lead"><div class="neg">${r[0]}</div><div class="sub">${r[1]}</div><div class="acts"><a class="a" target="_blank" rel="noopener" href="${r[2]}">Abrir</a><button class="a" onclick="navigator.clipboard.writeText('${r[2]}');toast('Link copiado')">Copiar link</button><a class="a wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(r[2])}">WhatsApp</a></div></div>`).join("")+`<div class="box"><b>Video de la propuesta</b><input id="vid" value="${esc(DATA.config.video||"")}" placeholder="Link del video (Instagram, YouTube o Drive)"><button class="btn" id="vidg">Guardar video</button></div>`;
+  $("#vidg").onclick=async()=>{try{await api({action:"config",video_url:$("#vid").value.trim()});toast("Video guardado");cargar(1)}catch(e){toast("Error: "+e.message)}}}
 function nuevoForm(m){
   m.innerHTML=`<div class="box"><b>Agregar prospecto</b> (de una llamada, visita o DM)
   <label>Negocio</label><input id="fn"><label>Nombre del dueño</label><input id="fp"><label>WhatsApp</label><input id="fw" inputmode="tel">

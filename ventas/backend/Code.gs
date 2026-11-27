@@ -66,7 +66,7 @@ function doGet(e) {
   const q = e.parameter || {};
   if (q.action === 'propuesta') {           // página pública de propuesta: solo datos no sensibles
     const f = filas().find(x => x.id === q.id); if (!f) return out({ ok: false });
-    return out({ ok: true, negocio: f.negocio, nombre: String(f.nombre).split(' ')[0], tipo: f.tipo,
+    return out({ ok: true, negocio: f.negocio, nombre: String(f.nombre).split(' ')[0], tipo: f.tipo, zona: f.zona, equipo: f.equipo, fecha: f.fecha, hora: f.hora, modo: f.modo,
       pago: cfg('PAGO_URL'), video: cfg('VIDEO_URL'), wa: cfg('WA_JUAN') });
   }
   if (q.action === 'cupos') return out({ ok: true, tomados: filas().filter(x => x.estado === 'cliente').length });
@@ -189,7 +189,7 @@ function mensajes(f) {
   const prop = `${BASE}propuesta/?id=${f.id}`, reag = `${BASE}?o=reagendar&negocio=${encodeURIComponent(neg)}`;
   return {
     confirmacion: { corto: 'confirmación de demo', asunto: `✅ Tu demo de Glow para ${neg} quedó agendada`,
-      texto: `Hola ${n} 👋\n\nTu demo gratis de Glow para ${neg} quedó para el ${cuando} (${String(f.modo).toLowerCase()}).\n${lugar}\n\nEn 20 minutos te mostramos tu propia app de citas con la marca de ${neg}. Si necesitas cambiar la hora: ${reag}\n\nEquipo Glow ✨` },
+      texto: `Hola ${n} 👋\n\nTu demo gratis de Glow para ${neg} quedó para el ${cuando} (${String(f.modo).toLowerCase()}).\n${lugar}\n\nEn 20 minutos te mostramos tu propia app de citas con la marca de ${neg}. Mientras tanto, mira tu presentación personalizada: ${BASE}presentacion/?id=${f.id}&negocio=${encodeURIComponent(neg)}\nSi necesitas cambiar la hora: ${reag}\n\nEquipo Glow ✨` },
     rec24: { corto: 'recordatorio 24 h', asunto: `Mañana es tu demo de Glow, ${n}`,
       texto: `Hola ${n}, te recordamos que mañana ${cuando} es la demo de Glow para ${neg}.\n${lugar}\n\n¿Te sigue quedando bien? Si no, elige otra hora aquí: ${reag}\n\nEquipo Glow ✨` },
     rec2: { corto: 'recordatorio 2 h', asunto: `En 2 horas: tu demo de Glow`,
