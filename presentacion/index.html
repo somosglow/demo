@@ -73,13 +73,14 @@ p.l{color:#d9dce5;font-size:16px;margin-top:12px;line-height:1.55}
   </div>
 </section>
 
-<section class="sl" data-d="8">
+<section class="sl" data-d="12">
   <div class="k an">Así se vería</div>
   <h2 class="an">La app de <span class="g" data-f="negocio">tu negocio</span></h2>
   <div class="stage an"><div class="ph">
     <div class="ab"><div class="lg" data-f="ini">G</div><div><b data-f="negocio" style="font-size:12px">Tu negocio</b><small>Reserva tu cita</small></div></div>
     <div id="svcs"></div><div class="bt">Reservar ahora</div><small class="ej">Servicios y precios de ejemplo · los cambiamos por los tuyos</small>
   </div></div>
+  <a class="cta an" id="probar" target="_blank" rel="noopener" href="#" style="margin-top:12px">📱 Pruébala tú mismo</a>
 </section>
 
 <section class="sl" data-d="9">
@@ -155,6 +156,7 @@ function datos(d){
   $("planNota").textContent=grande?"Con un equipo grande te conviene mirar también el plan Pro (preventa): asistente de WhatsApp, reportes y varias sucursales.":"Perfecto para empezar: todo lo que necesitas para que tus clientes reserven solos.";
   if(d.fecha&&d.hora){const f=new Date(d.fecha+"T12:00:00"),D=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"],M=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];let[h,m]=d.hora.split(":").map(Number);const ap=h>=12?"pm":"am";h=h%12||12;
     $("finT").textContent="Nos vemos el "+D[f.getDay()]+" "+f.getDate()+" de "+M[f.getMonth()]+" 🙌";$("finP").textContent=`A las ${h}:${String(m).padStart(2,"0")} ${ap}${d.modo?" por "+String(d.modo).toLowerCase():""}. En 20 minutos te mostramos tu app funcionando con el nombre de ${neg}.`}
+  $("probar").href=`../app/?negocio=${encodeURIComponent(neg)}&tipo=${encodeURIComponent(tipo)}&zona=${encodeURIComponent(d.zona||"")}${q.get("id")?"&id="+encodeURIComponent(q.get("id")):""}`;
   $("apartar").href=(d.pago)||`https://wa.me/${WA}?text=${encodeURIComponent(`Hola Juan, vi la presentación de Glow para ${neg} y quiero apartar mi cupo de fundador`)}`;
   $("dudas").href=`https://wa.me/${WA}?text=${encodeURIComponent(`Hola Juan, vi la presentación de Glow para ${neg} y tengo una pregunta`)}`;
   const t=typeof d.tomados==="number"?Math.max(0,Math.min(10,d.tomados)):0;$("cbar").style.width=(t*10)+"%";$("ctext").textContent=t>=10?"Cupos de fundador agotados":`Quedan ${10-t} de 10 cupos de fundador`;

@@ -150,7 +150,8 @@ function tarjeta(l){
     <label>Enviar por WhatsApp (se abre con el texto listo)</label>
     <div class="acts" style="margin-top:4px">
       <button class="a" onclick="mandar('${l.id}','pres')">🎬 Presentación</button>
-      <button class="a" onclick="mandar('${l.id}','vitrina')">📱 Su app en 3D</button>
+      <button class="a" onclick="mandar('${l.id}','app')">📱 Probar su app</button>
+      <button class="a" onclick="mandar('${l.id}','vitrina')">✨ Vitrina 3D</button>
       <button class="a" onclick="mandar('${l.id}','planes')">💎 Planes</button>
       <button class="a" onclick="mandar('${l.id}','prop')">📄 Propuesta</button>
       ${DATA.config.video?`<button class="a" onclick="mandar('${l.id}','video')">▶️ Video</button>`:""}
@@ -176,6 +177,7 @@ function wa(id,i){
 }
 function links(l){const n=encodeURIComponent(l.negocio||""),qs=`negocio=${n}&nombre=${encodeURIComponent(l.nombre||"")}&tipo=${encodeURIComponent(l.tipo||"")}&zona=${encodeURIComponent(l.zona||"")}&equipo=${encodeURIComponent(l.equipo||"")}${l.fecha?`&fecha=${l.fecha}&hora=${l.hora}`:""}&modo=${encodeURIComponent(l.modo||"")}&id=${l.id}`;
   return{pres:[`Hola ${nom(l)} 👋 Te preparé una presentación de cómo se vería Glow en ${l.negocio}. Mírala aquí (1 minuto):`,`${DEMO_LINK}presentacion/?${qs}`],
+  app:[`${nom(l)}, prueba aquí la app de ${l.negocio} como si fueras tu cliente (30 segundos) 📱`,`${DEMO_LINK}app/?negocio=${n}&tipo=${encodeURIComponent(l.tipo||"")}&zona=${encodeURIComponent(l.zona||"")}&id=${l.id}`],
   vitrina:[`Mira cómo se vería la app de ${l.negocio} 📱✨`,`${DEMO_LINK}?negocio=${n}&o=juan`],
   planes:[`Estos son nuestros planes. Como fundador quedas en $175 de instalación (normal $350) y $35/mes congelado 👇`,`${DEMO_LINK}?negocio=${n}&o=juan#planes`],
   prop:[`Aquí está tu propuesta personalizada para ${l.negocio} 👇`,`${DEMO_LINK}propuesta/?id=${l.id}&negocio=${n}`],
@@ -211,7 +213,7 @@ function pintar(){
     m.innerHTML=stats+`<div class="filt">${["activos",...ESTADOS].map(e=>`<button class="${e===FIL?"on":""}" onclick="FIL='${e}';pintar()">${e}</button>`).join("")}</div><h2>${lista.length} prospectos</h2>`+(lista.map(tarjeta).join("")||'<div class="empty">Nada aquí</div>');
   }
 }
-function recursos(m){const R=[["🌐 Página de demos","Para Instagram, bio y mensajes",`${DEMO_LINK}?o=juan`],["📱 Su app en 3D","Agrega ?negocio=Nombre para personalizar",`${DEMO_LINK}?negocio=Tu%20Negocio`],["🎬 Presentación de ejemplo","Cada lead tiene la suya en su ficha",`${DEMO_LINK}presentacion/?negocio=Studio%20Bella&tipo=Sal%C3%B3n%20de%20belleza&nombre=Mar%C3%ADa`],["💎 Planes y precios","Mensual o anual, fundador y Pro",`${DEMO_LINK}#planes`],["📄 Propuesta de ejemplo","La real sale sola al marcar Demo hecha",`${DEMO_LINK}propuesta/?negocio=Studio%20Bella`],["📝 Onboarding","Para clientes que ya pagaron",`${DEMO_LINK}onboarding/`],["📸 Instagram de Glow","Videos y Reels",`https://www.instagram.com/glowapp.oficial/`]];
+function recursos(m){const R=[["🌐 Página de demos","Para Instagram, bio y mensajes",`${DEMO_LINK}?o=juan`],["📱 Su app en 3D","Agrega ?negocio=Nombre para personalizar",`${DEMO_LINK}?negocio=Tu%20Negocio`],["📱 App demo interactiva","Se personaliza con ?negocio=…&tipo=Barbería",`${DEMO_LINK}app/?negocio=Barber%C3%ADa%20El%20Tigre&tipo=Barber%C3%ADa`],["🎬 Presentación de ejemplo","Cada lead tiene la suya en su ficha",`${DEMO_LINK}presentacion/?negocio=Studio%20Bella&tipo=Sal%C3%B3n%20de%20belleza&nombre=Mar%C3%ADa`],["💎 Planes y precios","Mensual o anual, fundador y Pro",`${DEMO_LINK}#planes`],["📄 Propuesta de ejemplo","La real sale sola al marcar Demo hecha",`${DEMO_LINK}propuesta/?negocio=Studio%20Bella`],["📝 Onboarding","Para clientes que ya pagaron",`${DEMO_LINK}onboarding/`],["📸 Instagram de Glow","Videos y Reels",`https://www.instagram.com/glowapp.oficial/`]];
   if(DATA.config.video)R.splice(1,0,["▶️ Video de la propuesta","",DATA.config.video]);
   m.innerHTML=`<h2>Recursos para vender</h2>`+R.map(r=>`<div class="lead"><div class="neg">${r[0]}</div><div class="sub">${r[1]}</div><div class="acts"><a class="a" target="_blank" rel="noopener" href="${r[2]}">Abrir</a><button class="a" onclick="navigator.clipboard.writeText('${r[2]}');toast('Link copiado')">Copiar link</button><a class="a wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(r[2])}">WhatsApp</a></div></div>`).join("")+`<div class="box"><b>Video de la propuesta</b><input id="vid" value="${esc(DATA.config.video||"")}" placeholder="Link del video (Instagram, YouTube o Drive)"><button class="btn" id="vidg">Guardar video</button></div>`;
   $("#vidg").onclick=async()=>{try{await api({action:"config",video_url:$("#vid").value.trim()});toast("Video guardado");cargar(1)}catch(e){toast("Error: "+e.message)}}}
