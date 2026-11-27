@@ -86,6 +86,57 @@ footer{text-align:center;color:#6f7789;font-size:12px;margin-top:30px}
 footer a{color:var(--a);text-decoration:none}
 canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.perk,.slot{opacity:1;transform:none}}
+.show{margin:8px 0 22px;text-align:center}
+.showcta{display:block;margin:16px auto 6px;max-width:360px;padding:15px;border-radius:14px;background:linear-gradient(90deg,var(--a),var(--b));color:#111;font-weight:700;text-decoration:none;font-size:15.5px;box-shadow:0 10px 30px rgba(255,122,89,.35);animation:pulse 2s infinite}
+.showsub{color:var(--soft);font-size:12.5px}
+.show-t{font-size:21px;line-height:1.25;margin-bottom:6px}.show-t span{background:linear-gradient(90deg,var(--a),var(--b));-webkit-background-clip:text;color:transparent}
+.stage{position:relative;height:430px;perspective:1100px;display:flex;align-items:center;justify-content:center}
+.phone{position:relative;width:200px;height:400px;border-radius:34px;background:#0b0f19;border:7px solid #2b3550;box-shadow:0 30px 60px rgba(0,0,0,.55),0 0 0 1px #3d4a6b,0 0 60px rgba(255,122,89,.18);transform-style:preserve-3d;animation:spin 9s ease-in-out infinite;overflow:hidden}
+@keyframes spin{0%,100%{transform:rotateY(-20deg) rotateX(6deg) translateY(0)}50%{transform:rotateY(20deg) rotateX(-4deg) translateY(-10px)}}
+.notch{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:70px;height:16px;background:#000;border-radius:10px;z-index:3}
+.scr{position:absolute;inset:0;padding:30px 13px 12px;opacity:0;transform:translateX(30px) scale(.96);transition:.6s cubic-bezier(.2,.8,.2,1);text-align:left;font-size:12px;background:linear-gradient(180deg,#141b2b,#0f1420)}
+.scr.on{opacity:1;transform:none}
+.appbar{display:flex;gap:9px;align-items:center;margin-bottom:12px}.appbar small{display:block;color:var(--soft);font-size:10px}.appbar b{font-size:13px}
+.lg{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--a),var(--b));display:flex;align-items:center;justify-content:center;font-weight:700;color:#111;font-size:17px}
+.svc{display:flex;justify-content:space-between;background:var(--card2);border-radius:11px;padding:10px;margin-bottom:7px}
+.cta{margin-top:10px;text-align:center;background:linear-gradient(90deg,var(--a),var(--b));color:#111;font-weight:700;border-radius:12px;padding:10px;animation:pulse 1.6s infinite}
+.cta.sm{padding:6px;margin-top:8px;font-size:11px}
+@keyframes pulse{50%{transform:scale(1.04)}}
+.ej{display:block;text-align:center;color:#6f7890;font-size:9px;margin-top:6px}
+.h{display:block;font-size:14px;margin-bottom:9px}
+.days,.hrs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
+.days i,.hrs i{font-style:normal;text-align:center;background:var(--card2);border-radius:9px;padding:7px 0;font-size:10.5px}
+.scr.on .sel{animation:pick .5s .6s forwards}
+@keyframes pick{to{background:linear-gradient(135deg,var(--a),var(--b));color:#111;font-weight:700}}
+.hrs .sel{animation-delay:1.2s!important}
+.ok3{margin-top:14px;text-align:center;opacity:0;transform:scale(.6)}.scr.on .ok3{animation:okk .5s 1.9s forwards}
+.ok3 span{display:block;margin:0 auto 6px;width:42px;height:42px;border-radius:50%;background:var(--ok);color:#0b2;font-size:24px;line-height:42px;color:#0d2a18;font-weight:700}
+@keyframes okk{to{opacity:1;transform:none}}
+.lock{text-align:center;font-size:40px;font-weight:300;margin:6px 0 14px}.lock small{display:block;font-size:11px;color:var(--soft)}
+.noti{background:rgba(255,255,255,.1);backdrop-filter:blur(6px);border-radius:14px;padding:9px;margin-bottom:8px;font-size:11px;opacity:0;transform:translateY(-14px)}
+.noti b{display:block;font-size:11px;margin-bottom:2px}
+.scr.on .noti{animation:drop .5s .5s forwards}.scr.on .n2{animation-delay:1.5s}
+@keyframes drop{to{opacity:1;transform:none}}
+.loy{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;background:linear-gradient(135deg,#2a2140,#3a2a2a);border-radius:14px;padding:12px}
+.loy i{aspect-ratio:1;border-radius:50%;border:2px dashed #6b5a7a;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:13px}
+.loy i.f{border:0;background:linear-gradient(135deg,var(--a),var(--b));animation:pop .35s both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.gift{margin-top:10px;text-align:center;font-weight:600;color:var(--a)}
+.gsearch{background:#fff;color:#333;border-radius:20px;padding:8px 10px;font-size:11px;margin-bottom:10px}
+.gcard{background:#fff;color:#222;border-radius:12px;padding:10px;opacity:0;transform:translateY(12px)}.scr.on .gcard{animation:drop .5s .6s forwards}
+.gcard b{display:block;font-size:13px}.gcard small{color:#2a7a3a;font-size:10px}.st{color:#f5b301;letter-spacing:1px}
+.pin{text-align:center;font-size:34px;margin-top:10px;animation:bounce 1.2s infinite}@keyframes bounce{50%{transform:translateY(-8px)}}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}.kpi div{background:var(--card2);border-radius:11px;padding:8px;text-align:center}.kpi b{font-size:20px;color:var(--a);display:block}.kpi small{color:var(--soft);font-size:10px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:110px;background:var(--card2);border-radius:11px;padding:9px}
+.bars i{flex:1;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,var(--a),var(--b));height:0}.scr.on .bars i{animation:gr .8s forwards;}
+.scr.on .bars i:nth-child(2){animation-delay:.1s}.scr.on .bars i:nth-child(3){animation-delay:.2s}.scr.on .bars i:nth-child(4){animation-delay:.3s}.scr.on .bars i:nth-child(5){animation-delay:.4s}.scr.on .bars i:nth-child(6){animation-delay:.5s}
+@keyframes gr{to{height:var(--h)}}
+.chip{position:absolute;background:rgba(30,38,56,.92);border:1px solid #3a4666;border-radius:99px;padding:7px 12px;font-size:12.5px;white-space:nowrap;box-shadow:0 10px 25px rgba(0,0,0,.35);animation:fl 4s ease-in-out infinite}
+.c1{left:2%;top:22%}.c2{right:2%;top:40%;animation-delay:1.2s}.c3{left:6%;bottom:16%;animation-delay:2.2s}
+@keyframes fl{50%{transform:translateY(-12px) translateZ(40px)}}
+.cap{min-height:44px;font-weight:600;font-size:16px;margin-top:4px;transition:opacity .3s}
+.dots{display:flex;gap:7px;justify-content:center;margin-top:4px}.dots i{width:8px;height:8px;border-radius:99px;background:#3a4666;cursor:pointer;transition:.3s}.dots i.on{width:22px;background:var(--a)}
+@media(prefers-reduced-motion:reduce){.phone,.chip,.pin,.cta{animation:none}}
 </style>
 </head>
 <body>
@@ -105,6 +156,54 @@ canvas#conf{position:fixed;inset:0;pointer-events:none;z-index:50}
     <div class="perk" style="animation-delay:.3s"><b>🎁</b> Tarjeta de fidelidad</div>
     <div class="perk" style="animation-delay:.4s"><b>🎨</b> Con tu logo y colores</div>
   </div>
+
+  <section class="show" id="show" aria-label="Así se verá tu negocio con Glow">
+    <h2 class="show-t">Así se verá <span id="shName">tu negocio</span> con Glow</h2>
+    <div class="stage" id="stage">
+      <div class="phone" id="phone">
+        <div class="notch"></div>
+        <div class="scr on" data-c="Tu propia app con tu logo, tus servicios y tus precios">
+          <div class="appbar"><div class="lg" id="shLogo">G</div><div><b id="shName2">Tu negocio</b><small>Reserva tu cita</small></div></div>
+          <div class="svc"><span>✂️ Corte</span><b>$10</b></div><div class="svc"><span>🧔 Barba</span><b>$7</b></div><div class="svc"><span>✨ Combo</span><b>$15</b></div>
+          <div class="cta">Reservar ahora</div><small class="ej">Precios de ejemplo</small>
+        </div>
+        <div class="scr" data-c="Tus clientes reservan en 3 toques, sin registrarse">
+          <b class="h">Elige tu día</b>
+          <div class="days"><i>Lun<br>1</i><i class="sel">Mar<br>2</i><i>Mié<br>3</i><i>Jue<br>4</i></div>
+          <div class="hrs"><i>9:00</i><i>10:30</i><i class="sel">3:00</i><i>4:30</i></div>
+          <div class="ok3"><span>✓</span>¡Cita confirmada!</div>
+        </div>
+        <div class="scr" data-c="Recordatorios automáticos: menos citas perdidas">
+          <div class="lock">3:00<small>lunes</small></div>
+          <div class="noti"><b>🔔 <span class="nn">Tu negocio</span></b>Mañana a las 3:00 pm es tu cita. ¡Te esperamos!</div>
+          <div class="noti n2"><b>⏰ Recordatorio</b>Tu cita es en 2 horas 😉</div>
+        </div>
+        <div class="scr" data-c="Tarjeta de fidelidad digital: tus clientes vuelven más">
+          <b class="h">Tu tarjeta</b>
+          <div class="loy"></div>
+          <div class="gift">🎁 2 servicios de regalo</div>
+        </div>
+        <div class="scr" data-c="Te encuentran en Google y reservan desde ahí">
+          <div class="gsearch">🔍 barbería cerca de mí</div>
+          <div class="gcard"><b class="nn">Tu negocio</b><span class="st">★★★★★</span><small>Abierto · Reserva en línea</small><div class="cta sm">Reservar</div></div>
+          <div class="pin">📍</div>
+        </div>
+        <div class="scr" data-c="Y tú ves todo tu día desde el celular">
+          <b class="h">Hoy</b>
+          <div class="kpi"><div><b>12</b><small>citas</small></div><div><b>3</b><small>nuevos</small></div></div>
+          <div class="bars"><i style="--h:40%"></i><i style="--h:65%"></i><i style="--h:50%"></i><i style="--h:85%"></i><i style="--h:70%"></i><i style="--h:95%"></i></div>
+          <small class="ej">Datos de ejemplo</small>
+        </div>
+      </div>
+      <div class="chip c1">📲 Reserva 24/7</div>
+      <div class="chip c2">🎨 Tu marca</div>
+      <div class="chip c3">⏰ Avisos</div>
+    </div>
+    <p class="cap" id="cap"></p>
+    <div class="dots" id="dots"></div>
+    <a class="showcta" href="#card" onclick="document.getElementById('card').scrollIntoView({behavior:'smooth'});return false">📅 Quiero verlo con mi negocio · Agendar mi reunión</a>
+    <small class="showsub">Elige día y hora abajo y te conectamos por videollamada, llamada o en tu local.</small>
+  </section>
 
   <div class="card" id="card">
     <div class="steps"><div class="on" id="p1"><span></span></div><div id="p2"><span></span></div><div id="p3"><span></span></div></div>
@@ -226,6 +325,19 @@ $("send").onclick=async()=>{
 };
 
 function confeti(){const c=$("conf"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;const cols=["#FFB547","#FF7A59","#4DD98C","#ffffff"];const P=Array.from({length:140},()=>({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*14,vy:Math.random()*-12-4,s:4+Math.random()*6,c:cols[Math.random()*4|0],r:Math.random()*6}));let t=0;(function f(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);x.restore()});if(++t<150)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
+</script>
+<script>
+(()=>{const qs=new URLSearchParams(location.search),n=(qs.get("negocio")||"").slice(0,40).trim();
+if(n){document.getElementById("shName").textContent=n;document.getElementById("shName2").textContent=n;document.getElementById("shLogo").textContent=n[0].toUpperCase();document.querySelectorAll(".nn").forEach(e=>e.textContent=n)}
+const loy=document.querySelector(".loy");for(let i=0;i<12;i++){const e=document.createElement("i");e.textContent=i>=10?"🎁":"";loy.appendChild(e)}
+const S=[...document.querySelectorAll(".scr")],cap=document.getElementById("cap"),dots=document.getElementById("dots");let k=0,t;
+S.forEach((_,i)=>{const d=document.createElement("i");d.onclick=()=>{go(i);reset()};dots.appendChild(d)});
+function fillLoy(){const c=[...loy.children];c.forEach(x=>x.classList.remove("f"));c.slice(0,10).forEach((x,i)=>setTimeout(()=>x.classList.add("f"),300+i*170))}
+function go(i){S[k].classList.remove("on");dots.children[k].classList.remove("on");k=(i+S.length)%S.length;
+  const s=S[k];s.classList.remove("on");void s.offsetWidth;s.classList.add("on");dots.children[k].classList.add("on");
+  cap.style.opacity=0;setTimeout(()=>{cap.textContent=s.dataset.c;cap.style.opacity=1},200);if(s.querySelector(".loy"))fillLoy()}
+function reset(){clearInterval(t);t=setInterval(()=>go(k+1),3600)}
+go(0);reset();document.getElementById("stage").onclick=()=>{go(k+1);reset()};})();
 </script>
 </body>
 </html>
