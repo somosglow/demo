@@ -21,13 +21,15 @@ const HEAD = ['id','creado','origen','nombre','negocio','tipo','zona','whatsapp'
   'fecha','hora','estado','dueno','ultimo_toque','proximo_toque','toques','notas','reunion','enviados','actualizado'];
 const ESTADOS = ['nuevo','confirmado','demo hecha','propuesta','cliente','perdido','no contactar'];
 const TZ = 'America/Panama';
+const SHEET_ID = '1sO8vWgdo5J_CBmCvGlhsPXXcra8xSqCfXqGC8dAWnFo'; // hoja "Glow Ventas" en somosglowapp@gmail.com
+function libro() { return SpreadsheetApp.openById(SHEET_ID); }
 const BASE = 'https://somosglow.github.io/demo/';
 
 function P() { return PropertiesService.getScriptProperties(); }
 function cfg(k, d) { const v = P().getProperty(k); return v === null || v === '' ? (d === undefined ? '' : d) : v; }
 
 function setup() {
-  const ss = SpreadsheetApp.getActive();
+  const ss = libro();
   let sh = ss.getSheetByName('Leads');
   if (!sh) { sh = ss.insertSheet('Leads'); sh.appendRow(HEAD); sh.setFrozenRows(1); }
   else { const h = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0]; HEAD.forEach(k => { if (h.indexOf(k) < 0) sh.getRange(1, sh.getLastColumn() + 1).setValue(k); }); }
@@ -44,7 +46,7 @@ function setup() {
 }
 
 // ---------- base de datos ----------
-function hoja() { return SpreadsheetApp.getActive().getSheetByName('Leads'); }
+function hoja() { return libro().getSheetByName('Leads'); }
 function cab() { return hoja().getRange(1, 1, 1, hoja().getLastColumn()).getValues()[0]; }
 function filas() {
   const v = hoja().getDataRange().getValues(); const h = v.shift();
