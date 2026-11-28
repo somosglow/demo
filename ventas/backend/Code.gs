@@ -85,6 +85,7 @@ function doPost(e) {
     if (b.key !== cfg('CLAVE')) return out({ ok: false, error: 'clave' });
     if (b.action === 'actualizar') return out(actualizar(b));
     if (b.action === 'config') { ['ZOOM','PAGO_URL','VIDEO_URL','WA_JUAN','EMAILS','AUTO'].forEach(k => { if (b[k.toLowerCase()] != null) P().setProperty(k, corto(b[k.toLowerCase()], 400)); }); return out({ ok: true }); }
+    if (b.action === 'importar') return out(importar(b));
     if (b.action === 'enviar') { const f = filas().find(x => x.id === b.id); if (!f) return out({ ok: false }); contactar(f, b.paso, true); return out({ ok: true }); }
     return out({ ok: false, error: 'accion' });
   } finally { lock.releaseLock(); }
@@ -108,6 +109,23 @@ function nuevo(b, interno) {
   avisar(`🗓️ Nueva demo: ${f.negocio}`, `${f.tipo || 'Negocio'} en ${f.zona || '—'}${f.fecha ? ' · ' + fechaLarga(f.fecha) + ' ' + h12(f.hora) : ''} · ${f.modo}\nAbre Glow Ventas para llamar o escribir.`, 'high', f.id);
   if (!interno && f.fecha) contactar(f, 'confirmacion');
   return { ok: true, id: f.id };
+}
+
+// Carga la lista de prospectos en frío: estado 'prospecto', sin avisos ni mensajes automáticos (Juan escribe a mano).
+function importar(b) {
+  const ya = new Set(filas().map(f => String(f.whatsapp).replace(/\D/g, '')));
+  const ahora = new Date(); let n = 0, rep = 0;
+  (b.filas || []).slice(0, 300).forEach(x => {
+    const tel = corto(x.whatsapp, 20).replace(/[^\d+]/g, ''); const d = tel.replace(/\D/g, '');
+    if (!corto(x.negocio).trim() || d.length < 7) return;
+    if (ya.has(d)) { rep++; return; } ya.add(d);
+    const f = { id: Utilities.getUuid().slice(0, 8), creado: ahora, origen: corto(x.origen || 'lista', 30), nombre: corto(x.nombre, 80), negocio: corto(x.negocio, 80),
+      tipo: corto(x.tipo, 30), zona: corto(x.zona, 80), whatsapp: tel, email: '', acepta: 'no', modo: '', equipo: '', fecha: '', hora: '',
+      estado: 'prospecto', dueno: corto(x.dueno || 'Juan', 20), ultimo_toque: '', proximo_toque: corto(x.proximo_toque, 10), toques: 0,
+      notas: corto(x.notas, 500), reunion: '', enviados: '{}', actualizado: ahora };
+    hoja().appendRow(cab().map(k => f[k] === undefined ? '' : f[k])); n++;
+  });
+  return { ok: true, importados: n, repetidos: rep };
 }
 
 function actualizar(b) {

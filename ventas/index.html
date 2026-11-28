@@ -78,7 +78,7 @@ let API=LS.get("api",""),KEY=LS.get("key",""),YO=LS.get("yo","Juan");
 let DATA={leads:[],config:{}},VIEW="hoy",FIL="activos",abierto=location.hash.slice(1)||null;
 const CAD=[0,2,5,9,14];// días de los 5 toques (ventas/SEGUIMIENTO.md)
 const DEMO_LINK="https://somosglow.github.io/demo/";
-const ESTADOS=["nuevo","confirmado","demo hecha","propuesta","cliente","perdido","no contactar"];
+const ESTADOS=["prospecto","nuevo","confirmado","demo hecha","propuesta","cliente","perdido","no contactar"];
 const cerrado=e=>["cliente","perdido","no contactar"].includes(e);
 
 // setup por link: .../ventas/#setup=<url>|<clave>
@@ -97,6 +97,10 @@ const nom=l=>(l.nombre||"").split(" ")[0]||"";
 function plantillas(l){
   const z=l.reunion||DATA.config.zoom||"";const cuando=l.fecha?`el ${fl(l.fecha)} a las ${h12(l.hora)}`:"";
   const modo=(l.modo||"").toLowerCase();
+  if(l.estado==="prospecto"){const demo=`${DEMO_LINK}app/?negocio=${encodeURIComponent(l.negocio||"")}&tipo=${encodeURIComponent(l.tipo||"")}&zona=${encodeURIComponent(l.zona||"")}`;return[
+    ["👋 Primer mensaje",`Hola 👋 ¿hablo con el encargado de ${l.negocio}? Soy ${YO}, de Glow, aquí en Panamá. Ayudamos a ${(l.tipo||"negocios").toLowerCase().includes("barb")?"barberías":"salones"} a tener su propia app de citas: el cliente reserva solo, le llega su recordatorio y se acaban los plantones. Te armé un ejemplo con el nombre de ${l.negocio}, pruébalo aquí 👉 ${demo} ¿Te muestro en 10 minutos cómo quedaría la tuya?`],
+    ["💬 Seguimiento (2–3 días)",`Hola de nuevo 👋 ¿Pudiste ver la app de ejemplo de ${l.negocio}? Si quieres te la muestro en una llamada corta, o agenda tú mismo aquí 👉 ${DEMO_LINK}?o=juan&negocio=${encodeURIComponent(l.negocio||"")}`],
+    ["👋 Último mensaje",`Hola, no te quiero llenar de mensajes 🙏 Si más adelante quieres tu propia app de citas para ${l.negocio}, aquí estamos. ¡Mucho éxito!`]];}
   return[
     ["✅ Confirmar demo",`Hola ${nom(l)}, soy ${YO} de Glow 👋 Te confirmo la demo de ${l.negocio} ${cuando}${modo?" por "+modo:""}.${modo.includes("video")&&z?" Este es el link: "+z:""}${modo.includes("visita")?" ¿Me compartes la ubicación del local?":""} ¿Te queda bien?`],
     ["⏰ Recordatorio (día de la demo)",`¡Hola ${nom(l)}! Hoy ${l.hora?"a las "+h12(l.hora)+" ":""}es nuestra demo de Glow para ${l.negocio}.${modo.includes("video")&&z?" Entras aquí: "+z:""} Nos vemos 🙌`],
@@ -173,7 +177,8 @@ function wa(id,i){
   window.open(`https://wa.me/${tel(l.whatsapp)}?text=${encodeURIComponent(p[1])}`,"_blank");
   const n=Number(l.toques||0)+1;const prox=n<CAD.length?masDias(CAD[n]-CAD[n-1]):"";
   const est=l.estado==="nuevo"&&i===0?"confirmado":l.estado;
-  upd(id,{toque:1,toques:n,toque_nota:`${YO}: WhatsApp «${p[0].replace(/^\S+\s/,"")}»`,proximo_toque:i===5?"":prox,estado:i===5&&!cerrado(l.estado)?"perdido":est},"Toque registrado");
+  const ult=i===plantillas(l).length-1&&/Último/.test(p[0]);
+  upd(id,{toque:1,toques:n,toque_nota:`${YO}: WhatsApp «${p[0].replace(/^\S+\s/,"")}»`,proximo_toque:ult?"":prox,estado:ult&&!cerrado(l.estado)?"perdido":est},"Toque registrado");
 }
 function links(l){const n=encodeURIComponent(l.negocio||""),qs=`negocio=${n}&nombre=${encodeURIComponent(l.nombre||"")}&tipo=${encodeURIComponent(l.tipo||"")}&zona=${encodeURIComponent(l.zona||"")}&equipo=${encodeURIComponent(l.equipo||"")}${l.fecha?`&fecha=${l.fecha}&hora=${l.hora}`:""}&modo=${encodeURIComponent(l.modo||"")}&id=${l.id}`;
   return{pres:[`Hola ${nom(l)} 👋 Te preparé una presentación de cómo se vería Glow en ${l.negocio}. Mírala aquí (1 minuto):`,`${DEMO_LINK}presentacion/?${qs}`],
