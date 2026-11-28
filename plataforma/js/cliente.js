@@ -1,5 +1,5 @@
 import * as S from './store.js';
-import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, toast, sheet, closeSheet, confetti, tilt, setBrand, vibrar, ics, wa, estrellas, avatar , tarjetaFid, selloHtml , animarFid, llenarFid } from './ui.js';
+import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, toast, sheet, closeSheet, confetti, tilt, setBrand, vibrar, ics, wa, estrellas, avatar , tarjetaFid, selloHtml , animarFid, llenarFid , celebrarPremio } from './ui.js';
 import qrcode from '../vendor/qrcode.mjs';
 
 const PAISES = [['507', '🇵🇦'], ['1', '🇺🇸'], ['57', '🇨🇴'], ['58', '🇻🇪'], ['506', '🇨🇷'], ['52', '🇲🇽'], ['593', '🇪🇨'], ['51', '🇵🇪'], ['34', '🇪🇸'], ['53', '🇨🇺'], ['505', '🇳🇮'], ['54', '🇦🇷']];
@@ -71,6 +71,10 @@ export function render(el, [slug]) {
   }
 
   /* ================= PÁGINA DEL SALÓN + SERVICIOS ================= */
+  function revisarPremio() {
+    const c = miCliente(); if (!c || !(c.premios > 0)) return; const k = 'glow.premio.' + c.id + '.' + c.premios; if (localStorage.getItem(k)) return; localStorage.setItem(k, '1');
+    setTimeout(() => celebrarPremio(T(), { nombre: c.nombre, codigo: 'PREMIO-' + c.id.slice(-4).toUpperCase() + c.premios, alCerrar: () => tarjeta() }), 700);
+  }
   function inicio() {
     st.paso = 0; const t = T();
     const svs = S.services(tid); const cats = [...new Set(svs.map(s => s.cat))];
@@ -110,8 +114,8 @@ export function render(el, [slug]) {
           </div>`; }).join('')}</div>
       </div>
       <div style="margin-top:26px" id="equipo"><h2>${L('Nuestro equipo')}</h2><div class="scroll-x" style="margin-top:12px"><div class="card flat c" style="min-width:160px;cursor:pointer" data-cual="1"><div class="av lg r" style="margin:0 auto;--c:var(--grad)">${ic('bolt', 26)}</div><div class="b" style="margin-top:10px">Cualquiera</div><div class="xs mut">El más pronto</div><span class="btn sm" style="margin-top:10px">Reservar</span></div>${prosSuc().map(m => { const r = rating(m.id); return `<div class="card tilt c" style="min-width:170px;cursor:pointer" data-verpro="${m.id}"><div class="pop">${avatar(m, 'lg r', 'margin:0 auto')}<div class="b" style="margin-top:10px">${esc(m.nombre)}</div><div class="xs mut">${esc(m.rol.split('·')[0])}</div>${r ? `<div class="xs" style="margin-top:4px">${estrellas(+r[0], 12)} <span class="mut">${r[0]}</span></div>` : ''}<span class="btn ghost sm" style="margin-top:10px">Ver perfil</span></div></div>`; }).join('')}</div></div>
-      <div class="card glass" style="margin-top:22px"><div class="row sp"><div><div class="xs mut">Programa de fidelidad</div><h3>${esc(t.fidelidad?.premio || 'Premio')} al completar ${t.fidelidad?.meta || 10} visitas</h3></div><div style="font-size:30px">🎁</div></div>
-        ${(t.fidelidad?.regalo ?? 2) > 0 && !miCliente()?.bienvenida ? `<div class="pill br" style="margin-top:8px">🎁 ${t.fidelidad?.regalo ?? 2} sellos de regalo en tu primera reserva</div>` : ''}<div class="row" style="gap:6px;margin-top:10px">${Array.from({ length: Math.min(5, t.fidelidad?.meta || 10) }, (_, i) => `<div class="fs ${i < 2 ? 'on' : ''}" style="width:34px;color:var(--mut);--sc:${t.color}">${i < 2 ? selloHtml(t) : ''}</div>`).join('')}<span class="xs mut">…</span></div>
+      <div class="card glass" style="margin-top:22px"><div class="row sp"><div><div class="xs mut">Programa de fidelidad</div><h3>${esc(t.fidelidad?.premio || 'Premio')} al completar ${t.fidelidad?.meta || 12} visitas</h3></div><div style="font-size:30px">🎁</div></div>
+        ${(t.fidelidad?.regalo ?? 2) > 0 && !miCliente()?.bienvenida ? `<div class="pill br" style="margin-top:8px">🎁 ${t.fidelidad?.regalo ?? 2} sellos de regalo en tu primera reserva</div>` : ''}<div class="row" style="gap:6px;margin-top:10px">${Array.from({ length: Math.min(5, t.fidelidad?.meta || 12) }, (_, i) => `<div class="fs ${i < 2 ? 'on' : ''}" style="width:34px;color:var(--mut);--sc:${t.color}">${i < 2 ? selloHtml(t) : ''}</div>`).join('')}<span class="xs mut">…</span></div>
         <div class="grid g2" style="margin-top:10px"><div class="sm"><b>Cómo ganas:</b> 1 sello por cada visita.</div><div class="sm"><b>Cómo canjeas:</b> al llenar tu tarjeta, tu premio se aplica solo en tu próxima cita.</div></div>
         <div class="row" style="margin-top:12px"><button class="btn sm g" data-a="tarjeta">${ic('gift', 15)} Ver mi tarjeta</button><button class="btn dark sm g" data-a="wallet"> Apple Wallet</button></div></div>
       ${mem.length ? `<div style="margin-top:24px"><h2>${L('Membresías')}</h2><p class="mut sm" style="margin:4px 0 12px">Paga al mes y ven cuando quieras. Cancela cuando quieras.</p><div class="scroll-x">${mem.map((m, i) => `<div class="card ${i === 1 ? 'glass' : 'flat'}" style="min-width:230px"><div class="row sp"><div class="b">${esc(m.nombre)}</div>${i === 1 ? '<span class="pill br">Popular</span>' : ''}</div><div style="font-size:28px;font-weight:800;margin:6px 0">${S.money(m.precio)}<span class="xs mut">/mes</span></div><div class="sm mut">${esc(m.incluye)}</div><button class="btn sm w" style="margin-top:12px" data-mem="${m.id}">Quiero esta</button></div>`).join('')}</div></div>` : ''}
@@ -245,7 +249,7 @@ export function render(el, [slug]) {
   /* ================= LISTO + PASE QR ================= */
   function qrSvg(txt, px = 180) { const qq = qrcode(0, 'M'); qq.addData(txt); qq.make(); return qq.createSvgTag({ cellSize: 5, margin: 1, scalable: true }).replace('<svg ', `<svg style="width:${px}px;height:${px}px" `); }
   function listo(b) {
-    st.paso = 5; const t = T(); const c = S.client(b.cid); const meta = t.fidelidad?.meta || 10;
+    st.paso = 5; const t = T(); const c = S.client(b.cid); const meta = t.fidelidad?.meta || 12;
     shell(`<section class="c" style="padding-top:22px">
       <div class="ico in" style="margin:0 auto;width:72px;height:72px;border-radius:24px;background:var(--grad);color:var(--ink);border:0;box-shadow:0 20px 50px -16px var(--brand)">${ic('check', 36)}</div>
       <h1 class="in2" style="font-size:32px;margin-top:14px">¡Listo, ${esc(c.nombre.split(' ')[0])}!</h1><p class="mut in2">Tu cita quedó confirmada. Te llegará un recordatorio.</p></section>
@@ -274,7 +278,7 @@ export function render(el, [slug]) {
     const hoyS = S.ymd(new Date()); const fut = bs.filter(b => b.inicio.slice(0, 10) >= hoyS && ['confirmada', 'llegó'].includes(b.estado)).reverse(); const pas = bs.filter(b => !fut.includes(b)).slice(0, 10);
     const rv = S.reviews(tid); const paqs = c ? S.cpackages(tid).filter(k => k.cid === c.id && k.restantes > 0) : [];
     sheet(`<div class="row sp"><h2>${L('Mis citas')}</h2><button class="btn ghost sm" id="m-salir">Cambiar número</button></div>
-      ${c ? `<div class="card glass" style="margin-top:12px"><div class="row"><div class="ico" style="background:var(--grad);color:var(--ink);border:0">${ic('gift')}</div><div class="g"><div class="b">${c.sellos || 0} de ${t.fidelidad?.meta || 10} sellos</div><div class="xs mut">${c.premios ? `🎁 Tienes ${c.premios} premio(s) para usar` : 'Sigue sumando para tu premio'}</div></div></div>
+      ${c ? `<div class="card glass" style="margin-top:12px"><div class="row"><div class="ico" style="background:var(--grad);color:var(--ink);border:0">${ic('gift')}</div><div class="g"><div class="b">${c.sellos || 0} de ${t.fidelidad?.meta || 12} sellos</div><div class="xs mut">${c.premios ? `🎁 Tienes ${c.premios} premio(s) para usar` : 'Sigue sumando para tu premio'}</div></div></div>
         <div class="xs mut" style="margin-top:10px">Tu código para invitar: <b style="color:var(--txt)">${refCode(c)}</b></div>${c.membresia ? `<div class="xs" style="margin-top:6px">💎 Membresía ${esc(c.membresia)}</div>` : ''}${paqs.map(k => `<div class="xs" style="margin-top:6px">🎟️ ${esc(k.nombre)}: te quedan <b>${k.restantes}</b></div>`).join('')}</div>` : ''}
       <h3 style="margin:18px 0 8px">Próximas</h3>
       ${fut.length ? fut.map(b => `<div class="card flat" style="margin-bottom:10px"><div class="b">${fechaL(S.parse(b.inicio))} · ${h12(b.inicio.slice(11))}</div><div class="sm mut">${b.items.map(i => esc(S.service(i)?.nombre)).join(' + ')} · ${esc(S.member(b.staffId)?.nombre)}</div>
@@ -362,7 +366,7 @@ export function render(el, [slug]) {
 
   /* ================= TARJETA DE FIDELIDAD + WALLET ================= */
   function tarjeta() {
-    const c = miCliente(); const t = T(); const meta = t.fidelidad?.meta || 10; const n = c?.sellos || 0;
+    const c = miCliente(); const t = T(); const meta = t.fidelidad?.meta || 12; const n = c?.sellos || 0;
     const reg = c?.bienvenida ? Math.min(n, t.fidelidad?.regalo ?? 2) : 0;
     sheet(`<div class="tilt">${tarjetaFid(t, { nombre: c ? c.nombre : 'Tu nombre aquí', n: c ? n : 0, regalo: reg, qr: c ? `<div class="c" style="margin-top:14px"><div class="qr" style="padding:8px">${qrSvg('GLOW-FID-' + c.id, 110)}</div><div class="xs" style="opacity:.85;margin-top:6px">Muéstralo en caja para sumar tu sello</div></div>` : '' })}</div>
       ${!c && (t.fidelidad?.regalo ?? 2) > 0 ? `<div class="reg-banner" style="margin-top:12px"><span style="font-size:28px">🎁</span><div class="sm"><b>Te regalamos ${t.fidelidad?.regalo ?? 2} sellos</b> en tu primera reserva desde la app.</div></div>` : ''}
@@ -373,7 +377,7 @@ export function render(el, [slug]) {
     $('.sheet [data-llenar]').onclick = () => { const cont = sh.querySelector('.fid').parentElement; llenarFid(cont, t, c ? c.nombre : 'Tu nombre aquí', c ? (c.sellos || 0) : 0); };
   }
   function wallet(tipo = 'apple') {
-    const t = T(); const c = miCliente(); const meta = t.fidelidad?.meta || 10; const n = c?.sellos || 0;
+    const t = T(); const c = miCliente(); const meta = t.fidelidad?.meta || 12; const n = c?.sellos || 0;
     const bg = `linear-gradient(135deg,${t.color2},${t.color})`;
     sheet(`<h2>${tipo === 'apple' ? 'Apple Wallet' : 'Google Wallet'}</h2><p class="mut sm">Así se verá tu tarjeta en la Wallet. Los sellos se actualizan solos después de cada visita, y te avisa en la pantalla bloqueada cuando estás cerca del local o tu cita es hoy.</p>
       <div class="wpass tilt" style="background:${bg};margin:14px auto;max-width:330px"><div class="wh"><div class="row" style="gap:8px">${t.logo ? `<span class="fid-logo" style="width:30px;height:30px;background-image:url(${t.logo})"></span>` : `<span class="fid-logo fid-ini" style="width:30px;height:30px;font-size:12px;--sc:${t.color}">${esc(ini(t.nombre))}</span>`}<b>${esc(t.nombre)}</b></div><div style="text-align:right"><small style="opacity:.75;font-size:9.5px">SELLOS</small><div class="b">${n}/${meta}</div></div></div>

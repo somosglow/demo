@@ -20,7 +20,7 @@ export const ITBMS = 0.07;
 let db = null;
 const COLS = ['tenants', 'services', 'staff', 'clients', 'bookings', 'sales', 'waitlist', 'reviews', 'offers', 'coupons', 'giftcards', 'products', 'packages', 'cpackages', 'expenses', 'queue', 'outbox', 'promos', 'vouchers'];
 function load() {
-  try { const x = JSON.parse(localStorage.getItem(KEY)); if (x && x.v === 4) { COLS.forEach(k => x[k] = x[k] || []); x.tenants.forEach(t => { t.estilo = t.estilo || estiloDe(t.tipo); if (t.demo && !x.promos.some(p => p.tid === t.id)) { seedPromos(x, t); if (t.slug === 'barberia-ejemplo') t.destacado = { hasta: ymd(addDays(new Date(), 6)), plan: 'Semana' }; } }); return x; } } catch (e) {}
+  try { const x = JSON.parse(localStorage.getItem(KEY)); if (x && x.v === 4) { COLS.forEach(k => x[k] = x[k] || []); x.tenants.forEach(t => { t.estilo = t.estilo || estiloDe(t.tipo); if (t.fidelidad && t.fidelidad.meta === 10 && !t.fidelidad.v12) { t.fidelidad.meta = 12; t.fidelidad.v12 = 1; } if (t.demo && !x.promos.some(p => p.tid === t.id)) { seedPromos(x, t); if (t.slug === 'barberia-ejemplo') t.destacado = { hasta: ymd(addDays(new Date(), 6)), plan: 'Semana' }; } }); return x; } } catch (e) {}
   const s = seed(); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} return s;
 }
 function save(origen = 'local') {
@@ -131,7 +131,7 @@ export function crearCita(tid, { items, extras = [], staffId, inicio, cliente, n
     pago: { deposito, pagado: deposito > 0 ? deposito : 0, metodo }, creado: iso(new Date()), codigo: codigo(t), avisos: {} };
   /* regalo de bienvenida: sellos gratis la primera vez que el cliente reserva en este negocio desde la app (una sola vez por número) */
   const reg = t.fidelidad?.regalo ?? 2;
-  if (origen === 'app' && reg > 0 && !c.bienvenida) { const cc = client(c.id); put('clients', { id: c.id, sellos: Math.min((t.fidelidad?.meta || 10) - 1, (cc.sellos || 0) + reg), bienvenida: iso(new Date()) }); b.bienvenida = reg; }
+  if (origen === 'app' && reg > 0 && !c.bienvenida) { const cc = client(c.id); put('clients', { id: c.id, sellos: Math.min((t.fidelidad?.meta || 12) - 1, (cc.sellos || 0) + reg), bienvenida: iso(new Date()) }); b.bienvenida = reg; }
   put('bookings', b);
   if (q.cupon) put('coupons', { id: q.cupon.id, usos: (q.cupon.usos || 0) + 1 });
   msg(tid, { cid: c.id, bid: b.id, tipo: 'Confirmación', texto: `Hola ${c.nombre.split(' ')[0]} ✨ Tu cita en ${t.nombre} quedó confirmada: ${inicio.slice(0, 10)} a las ${inicio.slice(11)}. Código ${b.codigo}.${b.bienvenida ? ` 🎁 Te regalamos ${b.bienvenida} sellos de bienvenida en tu tarjeta de fidelidad.` : ''}` });
@@ -144,7 +144,7 @@ export function estado(bid, estado, extra = {}) {
   put('bookings', { id: bid, estado, ['t_' + estado]: iso(new Date()), ...extra });
   if (estado === 'completada' && b.estado !== 'completada') {
     const c = client(b.cid); const t = tenant(b.tid);
-    if (c) put('clients', { id: c.id, sellos: ((c.sellos || 0) + 1) % (t.fidelidad?.meta || 10) === 0 ? 0 : (c.sellos || 0) + 1, premios: ((c.sellos || 0) + 1) % (t.fidelidad?.meta || 10) === 0 ? (c.premios || 0) + 1 : (c.premios || 0) });
+    if (c) put('clients', { id: c.id, sellos: ((c.sellos || 0) + 1) % (t.fidelidad?.meta || 12) === 0 ? 0 : (c.sellos || 0) + 1, premios: ((c.sellos || 0) + 1) % (t.fidelidad?.meta || 12) === 0 ? (c.premios || 0) + 1 : (c.premios || 0) });
   }
 }
 /** Cobro en caja: cita (opcional) + productos, con descuento, propina, tarjeta de regalo y paquete. */
@@ -284,7 +284,7 @@ export function crearNegocio({ nombre, tipo = 'barberia', zona = '', color = '#F
   const anio = new Date().getFullYear();
   const t = { id: tid, slug, nombre, tipo, zona, color, color2, tel, plan, estilo: estilo || estiloDe(tipo), estado: 'activo', creado: iso(new Date()), demo,
     horario: HOR(), deposito: { activo: tipo !== 'barberia', pct: 20 }, politica: 'Puedes cancelar o cambiar gratis hasta 4 horas antes.',
-    fidelidad: { meta: 10, premio: 'Servicio gratis', regalo: 2, sello: 'logo', fondo: 'marca' }, referidos: { activo: true, pct: 10 }, avisos: { h24: true, antes: 120, gracias: true, tetoca: 21 },
+    fidelidad: { meta: 12, premio: 'Servicio gratis', regalo: 2, sello: 'logo', fondo: 'marca' }, referidos: { activo: true, pct: 10 }, avisos: { h24: true, antes: 120, gracias: true, tetoca: 21 },
     sucursales: [{ id: 'principal', nombre: zona ? zona.split(',')[0] : 'Principal', dir: zona }], fila: true, idiomas: ['es', 'en'],
     cierres: [{ fecha: `${anio}-12-25`, motivo: 'Navidad' }, { fecha: `${anio + 1}-01-01`, motivo: 'Año Nuevo' }],
     extras: (EXTRAS[tipo] || EXTRAS.barberia).map(([n, p, d]) => ({ id: uid('e'), nombre: n, precio: p, dur: d })),

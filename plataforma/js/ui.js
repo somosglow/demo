@@ -127,7 +127,7 @@ const DECO = {
   lujo: '<svg class="dz-deco" viewBox="0 0 400 120" preserveAspectRatio="xMidYMin slice"><g fill="none" stroke="url(#oroL)" stroke-width="1"><defs><linearGradient id="oroL" x1="0" x2="1"><stop offset="0" stop-color="#8A6A2B"/><stop offset=".5" stop-color="#F3D88C"/><stop offset="1" stop-color="#8A6A2B"/></linearGradient></defs>' + [0, 1, 2, 3, 4, 5, 6].map(i => `<path d="M200 -10 L${20 + i * 60} 120"/>`).join('') + '<circle cx="200" cy="-10" r="40"/><circle cx="200" cy="-10" r="60"/><circle cx="200" cy="-10" r="80"/></g></svg><i class="dz-frame"></i>',
 };
 export function tarjetaFid(t, { nombre = 'Tu nombre aquí', n = 0, regalo = 0, qr = '', premio = false, nuevo = -1 } = {}) {
-  const f = t.fidelidad || {}; const meta = f.meta || 10; const fondo = f.fondo || 'marca'; if (premio) n = meta;
+  const f = t.fidelidad || {}; const meta = f.meta || 12; const fondo = f.fondo || 'marca'; if (premio) n = meta;
   const bg = fondo === 'oscuro' ? 'linear-gradient(150deg,#1E1F25,#0B0C0F)' : fondo === 'portada' && t.portada ? `linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.7)),url(${t.portada}) center/cover` : fondo === 'claro' ? 'linear-gradient(150deg,#FFFFFF,#F1EFEA)' : `linear-gradient(135deg,${t.color2 || '#FFB547'},${t.color || '#FF7A59'})`;
   const tx = fondo === 'claro' ? '#0F1420' : '#fff';
   const dz = f.diseno || DISENO_TIPO[t.tipo] || 'simple'; const D = DISENOS[dz] && dz !== 'simple';
@@ -153,8 +153,41 @@ export function animarFid(root, { sonar = true } = {}) {
 const on0 = c => c.querySelectorAll('.fs.on').length;
 /* llena la tarjeta sello por sello (para ver cómo se siente completarla) */
 export function llenarFid(cont, t, nombre, desde = 0) {
-  const meta = t.fidelidad?.meta || 10; let n = desde;
+  const meta = t.fidelidad?.meta || 12; let n = desde;
   const paso = () => { n++; cont.innerHTML = tarjetaFid(t, { nombre, n, nuevo: n - 1 }); animarFid(cont, { sonar: false }); vibrar(n === meta ? [30, 60, 30, 60, 80] : 18);
-    if (n < meta) setTimeout(paso, n > meta - 3 ? 650 : 420); else confetti(); };
+    if (n < meta) setTimeout(paso, n > meta - 3 ? 650 : 420); else setTimeout(() => celebrarPremio(t, { nombre, alCerrar: () => { cont.innerHTML = tarjetaFid(t, { nombre, n: 0 }); cont.querySelector('.fid').classList.add('renueva'); animarFid(cont, { sonar: false }); toast('Tu tarjeta empieza de nuevo ✦', 'gift'); } }), 900); };
   setTimeout(paso, 300);
+}
+
+/* celebración al completar la tarjeta: el regalo cae, rebota, gira, se abre y sale la tarjeta de felicitación; luego la tarjeta empieza de nuevo */
+export const FRASES = [
+  '{nombre}, gracias por elegirnos {meta} veces. Cada visita tuya nos hace mejores. Este regalo es para ti 💛',
+  '{nombre}, eres parte de la familia de {negocio}. Gracias por tu confianza. ¡Disfruta tu premio!',
+  'Lo lograste, {nombre}. {meta} visitas, {meta} veces que nos alegraste el día. Te lo mereces ✨',
+  '{nombre}, clientes como tú son la razón por la que abrimos cada día. ¡Gracias de corazón!',
+];
+export function frasePremio(t, nombre) {
+  const f = t.fidelidad || {}; const base = f.frase?.trim() || FRASES[(nombre || '').length % FRASES.length];
+  return base.replaceAll('{nombre}, ', (nombre || '').split(' ')[0] ? (nombre || '').split(' ')[0] + ', ' : '').replaceAll('{nombre}', (nombre || '').split(' ')[0] || 'tú').replaceAll('{negocio}', t.nombre).replaceAll('{meta}', f.meta || 12).replaceAll('{premio}', f.premio || 'tu premio');
+}
+export function celebrarPremio(t, { nombre = 'Cliente', codigo = '', alCerrar = null } = {}) {
+  if (/^tu nombre/i.test(nombre || '')) nombre = '';
+  const f = t.fidelidad || {}; const cod = codigo || 'PREMIO-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+  const v = document.createElement('div'); v.className = 'gift-veil';
+  v.style.setProperty('--sc', t.color || '#FF7A59'); v.style.setProperty('--sc2', t.color2 || '#FFB547');
+  v.innerHTML = `<div class="gift-rays"></div>
+    <div class="gift-stage"><div class="gift"><div class="g-lid"><i class="g-bow l"></i><i class="g-bow r"></i><i class="g-knot"></i></div><div class="g-box"><i class="g-rib"></i></div></div>
+      <div class="g-card"><div class="xs" style="letter-spacing:.14em;opacity:.8">${esc(t.nombre).toUpperCase()}</div><h2 class="g-tit">¡Felicidades${nombre ? ', ' + esc(nombre.split(' ')[0]) : ''}!</h2>
+        <p class="g-frase">${esc(frasePremio(t, nombre))}</p>
+        <div class="g-prem"><div class="xs" style="opacity:.75">Tu regalo</div><div class="b" style="font-size:20px">${esc(f.premio || 'Servicio gratis')}</div></div>
+        <div class="g-cod">${cod}</div><div class="xs" style="opacity:.8">Muéstrale esta pantalla en caja para reclamarlo</div>
+        <button class="btn w" style="margin-top:14px;background:#2B1B02;color:#FCE7A2" data-ok>¡Gracias! 💛</button></div></div>
+    <div class="g-tap xs">Toca el regalo</div>`;
+  document.body.append(v);
+  const gift = v.querySelector('.gift'); let abierto = false;
+  const abrir = () => { if (abierto) return; abierto = true; v.classList.add('abre'); vibrar([20, 40, 20, 40, 60]); setTimeout(() => { confetti(['#F7D774', '#FCE7A2', t.color || '#FF7A59', '#fff', t.color2 || '#FFB547']); vibrar(80); }, 650); setTimeout(() => v.classList.add('carta'), 900); };
+  setTimeout(() => vibrar(25), 600); setTimeout(() => vibrar(15), 950); setTimeout(() => v.classList.add('listo'), 1500);
+  setTimeout(abrir, 3200); gift.onclick = abrir;
+  v.querySelector('[data-ok]').onclick = () => { v.classList.add('sale'); setTimeout(() => { v.remove(); alCerrar && alCerrar(); }, 450); };
+  return cod;
 }

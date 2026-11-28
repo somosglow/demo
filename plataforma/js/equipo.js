@@ -78,7 +78,7 @@ export function render(el, [slug]) {
   function resumenCli(cid, m) {
     const c = S.client(cid); if (!c) return ''; const hist = S.bookings(t.id).filter(b => b.cid === cid && b.estado === 'completada').sort((a, b) => b.inicio.localeCompare(a.inicio));
     const ult = hist[0]; const conmigo = hist.filter(b => b.staffId === m.id).length; const cumple = (c.cumple || '').slice(5, 7) === String(new Date().getMonth() + 1).padStart(2, '0');
-    const tags = [hist.length ? `${hist.length} visita${hist.length > 1 ? 's' : ''}${conmigo ? ' · ' + conmigo + ' contigo' : ''}` : 'Primera vez', c.membresia ? '💳 ' + c.membresia : '', cumple ? '🎂 Cumple este mes' : '', c.sellos ? `🎟️ ${c.sellos}/${t.fidelidad?.meta || 10} sellos` : ''].filter(Boolean);
+    const tags = [hist.length ? `${hist.length} visita${hist.length > 1 ? 's' : ''}${conmigo ? ' · ' + conmigo + ' contigo' : ''}` : 'Primera vez', c.membresia ? '💳 ' + c.membresia : '', cumple ? '🎂 Cumple este mes' : '', c.sellos ? `🎟️ ${c.sellos}/${t.fidelidad?.meta || 12} sellos` : ''].filter(Boolean);
     return `<div class="row wrapx" style="gap:6px;margin-top:10px">${tags.map(x => `<span class="pill">${esc(x)}</span>`).join('')}</div>
       ${ult ? `<div class="xs mut" style="margin-top:8px">Última vez: ${S.parse(ult.inicio).getDate()} ${['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][S.parse(ult.inicio).getMonth()]} · ${esc(ult.items.map(i => S.service(i)?.nombre).join(' + '))} con ${esc(S.member(ult.staffId)?.nombre || '')}</div>` : ''}
       ${c.notas ? `<div class="sm" style="margin-top:6px">📝 ${esc(c.notas)}</div>` : ''}`;
