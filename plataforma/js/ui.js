@@ -69,7 +69,7 @@ export function contar(root = document) {
 }
 
 export function setBrand(t) { const r = document.documentElement.style; r.setProperty('--brand', t?.color || '#FF7A59'); r.setProperty('--brand2', t?.color2 || '#FFB547');
-  document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#07090F'); }
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#F6F5F2'); }
 
 /* .ics para agregar al calendario */
 export function ics({ titulo, inicio, dur, lugar }) {
@@ -79,3 +79,12 @@ export function ics({ titulo, inicio, dur, lugar }) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/calendar' })); a.download = 'cita.ics'; a.click();
 }
 export const wa = (tel, txt) => `https://wa.me/${String(tel || '').replace(/\D/g, '').replace(/^(\d{8})$/, '507$1')}?text=${encodeURIComponent(txt)}`;
+
+/* foto desde el celular → JPEG comprimido (para portada, logo, galería y equipo) */
+export function leerImagen(file, max = 1200, q = 0.78) {
+  return new Promise((ok, mal) => { if (!file) return mal(new Error('sin archivo')); const r = new FileReader(); r.onerror = mal;
+    r.onload = () => { const im = new Image(); im.onerror = mal; im.onload = () => { const k = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', q)); }; im.src = r.result; }; r.readAsDataURL(file); });
+}
+export const estrellas = (n, size = 16) => `<span style="color:#F5A623;font-size:${size}px;letter-spacing:1px">${'★'.repeat(Math.round(n))}<span style="color:#D9D6CF">${'★'.repeat(5 - Math.round(n))}</span></span>`;
+export const avatar = (o, cls = '', estilo = '') => o?.foto ? `<div class="av ${cls}" style="${estilo};background:url(${o.foto}) center/cover"></div>` : `<div class="av ${cls}" style="--c:${o?.color || 'var(--grad)'};${estilo}">${esc(ini(o?.nombre))}</div>`;

@@ -1,0 +1,22 @@
+import * as S from './store.js';
+import { esc, ini, h12, setBrand, avatar } from './ui.js';
+import qrcode from '../vendor/qrcode.mjs';
+
+/* Pantalla de recepción para un TV: próximas citas, fila sin cita y QR para reservar. Se actualiza sola. */
+export function render(el, [slug]) {
+  const t0 = S.tenant(slug); if (!t0) { location.hash = '#/'; return; } const tid = t0.id; setBrand(t0); document.title = t0.nombre + ' · TV';
+  const pinta = () => {
+    const t = S.tenant(tid); const ahora = new Date(); const hoy = S.ymd(ahora); const hm = S.hm(ahora);
+    const prox = S.bookings(tid).filter(b => b.inicio.startsWith(hoy) && ['confirmada', 'llegó', 'en curso'].includes(b.estado) && (b.inicio.slice(11) >= S.fromMin(Math.max(0, S.toMin(hm) - 30)) || b.estado !== 'confirmada')).sort((a, b) => a.inicio.localeCompare(b.inicio)).slice(0, 8);
+    const fila = S.esperaFila(tid); const at = S.queue(tid).filter(q => q.estado === 'atendiendo' && q.creado.startsWith(hoy));
+    const link = location.href.split('#')[0] + '#/s/' + t.slug; const q = qrcode(0, 'M'); q.addData(link); q.make();
+    el.innerHTML = `<div class="tv"><div class="row sp" style="margin-bottom:24px"><div class="row">${t.logo ? `<div class="av lg" style="background:#fff url(${t.logo}) center/contain no-repeat;border:1px solid var(--line)"></div>` : `<div class="av lg">${esc(ini(t.nombre))}</div>`}<div><h1 style="font-size:40px">${esc(t.nombre)}</h1><div class="mut">Bienvenido ✦</div></div></div><div style="font-size:64px;font-weight:800" class="grad-t">${h12(hm)}</div></div>
+      <div class="grid" style="grid-template-columns:2fr 1fr 1fr;gap:20px">
+        <div class="card"><h2>Próximas citas</h2>${prox.length ? prox.map(b => `<div class="li" style="padding:16px 2px"><div style="width:120px;font-size:24px;font-weight:700">${h12(b.inicio.slice(11))}</div>${avatar(S.member(b.staffId), 'r')}<div class="g"><div style="font-size:22px;font-weight:600">${esc((S.client(b.cid)?.nombre || '').split(' ')[0])} ${esc(((S.client(b.cid)?.nombre || '').split(' ')[1] || '').slice(0, 1))}.</div><div class="mut">con ${esc(S.member(b.staffId)?.nombre)}</div></div><span class="pill ${b.estado === 'llegó' ? 'ok' : b.estado === 'en curso' ? 'br' : ''}" style="font-size:16px;padding:6px 14px">${b.estado === 'llegó' ? 'Llegó' : b.estado === 'en curso' ? 'En silla' : 'Confirmada'}</span></div>`).join('') : '<div class="empty" style="font-size:20px">Sin más citas por hoy</div>'}</div>
+        <div class="card"><h2>Fila sin cita</h2>${at.map(x => `<div style="padding:14px;border-radius:18px;background:var(--soft);margin-top:10px"><div style="font-size:30px;font-weight:800">#${x.numero}</div><div class="b">Pasa con ${esc(S.member(x.staffId)?.nombre)}</div></div>`).join('')}${fila.map(x => `<div class="li"><div style="font-size:26px;font-weight:800;width:70px">#${x.numero}</div><div class="g">${esc(x.nombre.split(' ')[0])}</div><div class="mut">~${x.min} min</div></div>`).join('') || (at.length ? '' : '<div class="empty" style="font-size:20px">¡No hay fila!</div>')}</div>
+        <div class="card c"><h2>Reserva tu próxima cita</h2><div class="qr" style="margin:20px auto;border:1px solid var(--line)">${q.createSvgTag({ cellSize: 6, margin: 1, scalable: true }).replace('<svg ', '<svg style="width:240px;height:240px" ')}</div><div class="mut">Escanea con la cámara</div><div style="margin-top:16px" class="b">¿Llegaste sin cita?<br>Toma tu turno con el mismo QR</div></div>
+      </div><p class="c xs dim" style="margin-top:20px">Pantalla de recepción · <img src="img/glow-logo-dark.png" style="height:12px;vertical-align:-2px"></p></div>`;
+  };
+  pinta(); const off = S.onChange(pinta); const it = setInterval(pinta, 30000);
+  return () => { off(); clearInterval(it); };
+}

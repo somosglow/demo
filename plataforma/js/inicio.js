@@ -14,7 +14,7 @@ export function render(el) {
   ];
   el.innerHTML = `
   <header class="top"><div class="wide in-top">
-    <a class="logo" href="#/"><img src="img/glow-logo.png" alt="Glow" style="height:28px;display:block"></a><div class="g"></div>
+    <a class="logo" href="#/"><img src="img/glow-logo-dark.png" alt="Glow" style="height:28px;display:block"></a><div class="g"></div>
     <a class="btn ghost sm" href="#/guia">${ic('book', 17)} Guía</a>
     <a class="btn sm" href="#/glow">Panel Glow</a>
   </div></header>

@@ -13,7 +13,7 @@ export function render(el, [sub]) {
     const mes = S.ymd(new Date()).slice(0, 7);
     const citasMes = ts.reduce((a, t) => a + S.bookings(t.id).filter(b => b.inicio.startsWith(mes)).length, 0);
     const app = ts.reduce((a, t) => a + S.bookings(t.id).filter(b => b.inicio.startsWith(mes) && b.origen === 'app').length, 0);
-    el.innerHTML = `<header class="top"><div class="wide in-top"><a class="logo" href="#/"><img src="img/glow-logo.png" style="height:26px" alt="Glow"></a><span class="pill br">Panel maestro</span><div class="g"></div><a class="btn sm" href="#/glow/nuevo">${ic('plus', 16)} Nuevo negocio</a></div></header>
+    el.innerHTML = `<header class="top"><div class="wide in-top"><a class="logo" href="#/"><img src="img/glow-logo-dark.png" style="height:26px" alt="Glow"></a><span class="pill br">Panel maestro</span><div class="g"></div><a class="btn sm" href="#/glow/nuevo">${ic('plus', 16)} Nuevo negocio</a></div></header>
     <main class="wide" style="padding:22px 20px 80px">
       <h1 class="in" style="font-size:32px">Todos los negocios</h1><p class="mut in">Cada salón es un espacio separado dentro de Glow. Tú ves todo; cada dueño solo ve lo suyo.</p>
       <div class="grid g4 stagger" style="margin-top:16px">

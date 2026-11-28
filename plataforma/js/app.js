@@ -9,13 +9,15 @@ const rutas = [
   [/^#\/s\/([^/]+)\/equipo\/?$/, () => import('./equipo.js')],
   [/^#\/s\/([^/]+)\/panel(?:\/(\w+))?\/?$/, () => import('./dueno.js')],
   [/^#\/glow(?:\/(\w+))?\/?$/, () => import('./glow.js')],
+  [/^#\/s\/([^/]+)\/tv\/?$/, () => import('./tv.js')],
   [/^#\/guia\/?$/, () => import('./guia.js')],
 ];
 async function ir() {
   let h = location.hash || '#/';
   const q = new URLSearchParams(location.search); if (q.get('s') && h === '#/') { h = '#/s/' + q.get('s'); history.replaceState(null, '', location.pathname + h); }
+  const hq = h.split('?')[0];
   for (const [re, mod] of rutas) {
-    const m = h.match(re); if (!m) continue;
+    const m = hq.match(re); if (!m) continue;
     try { limpiar && limpiar(); } catch (e) {}
     limpiar = null; closeSheet(); window.scrollTo(0, 0);
     const M = await mod();

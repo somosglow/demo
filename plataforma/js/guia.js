@@ -38,7 +38,7 @@ export function render(el) {
   let k = 'cliente', i = 0; const t = S.tenants()[0];
   const pinta = () => {
     const g = G[k]; const p = g.p[i];
-    el.innerHTML = `<header class="top"><div class="wrap in-top"><a class="ico" href="#/">${ic('back')}</a><div class="g b">Guía de uso</div><img src="img/glow-logo.png" style="height:22px" alt="Glow"></div></header>
+    el.innerHTML = `<header class="top"><div class="wrap in-top"><a class="ico" href="#/">${ic('back')}</a><div class="g b">Guía de uso</div><img src="img/glow-logo-dark.png" style="height:22px" alt="Glow"></div></header>
     <main class="wrap" style="padding-bottom:60px">
       <div class="scroll-x" style="margin:16px -18px">${Object.entries(G).map(([kk, v]) => `<button class="chip ${k === kk ? 'on' : ''}" data-k="${kk}">${ic(v.i, 15)} ${v.t}</button>`).join('')}</div>
       <p class="mut">${g.d}</p>
