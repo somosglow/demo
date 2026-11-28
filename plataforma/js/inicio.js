@@ -1,6 +1,10 @@
 import * as S from './store.js';
 import { esc, ic, ini, setBrand, tilt, estrellas, toast, h12 } from './ui.js';
-import { mapa, CSS_MAPA, animarMapa } from './mapa.js';
+import { mapa, CSS_MAPA, animarMapa, CIUDADES } from './mapa.js';
+
+const ESE = ['Tu app de reservas con tu marca, tu link y tu QR', 'Página del negocio con portada, galería, mapa y reseñas', 'Reservas 24/7 con precio por profesional y extras', 'Confirmación y recordatorios automáticos', 'Pase QR, «Ya llegué» y fila sin cita', 'Pantalla TV para recepción', 'Agenda por profesional (arrastrar y mover)', 'Caja con ITBMS, productos, gastos y cierre del día', 'Clientes: ficha, notas, importar y exportar', 'Tarjeta de fidelidad y programa de referidos', 'App del equipo con PIN y comisiones', 'Asistente 24/7 en tu app', 'Español e inglés', 'Hasta 3 profesionales'];
+const PRO = ['Asistente con IA en WhatsApp que agenda por ti', 'Depósitos para apartar con Yappy o tarjeta', 'Ofertas, cupones y tarjetas de regalo', 'Paquetes prepago y membresías mensuales', 'Campañas: te toca tu corte, cumpleaños, día flojo y reseñas', 'Inventario de productos con alertas', 'Reportes completos y exportables', 'Fotos antes/después en la ficha del cliente', 'Hasta 10 profesionales'];
+const NEG = ['Varias sucursales en un solo panel', 'Profesionales ilimitados', 'Inventario y reportes por sucursal', 'Factura electrónica integrada', 'Soporte prioritario y capacitación del equipo', 'Gerente de cuenta dedicado'];
 
 export function render(el) {
   setBrand(null);
@@ -22,7 +26,7 @@ export function render(el) {
   <main class="wide" style="padding-bottom:80px">
     <section class="c" style="padding:34px 0 10px">
       <div class="orb tilt in"><div class="ring"></div><div class="ring r2"></div><div class="core" style="background:radial-gradient(circle at 32% 28%,#fff 0,#FAF6EF 45%,#d9d2c6 100%);box-shadow:0 0 90px rgba(255,122,89,.55),inset -20px -30px 60px rgba(0,0,0,.25)"></div><div class="glyph"><img src="img/estrella.svg" alt="" style="width:46%;filter:drop-shadow(0 10px 30px rgba(255,107,74,.6))"></div></div>
-      <span class="pill br in2" style="margin-top:6px">✦ La nueva forma de reservar en Panamá</span>
+      <span class="pill br in2" style="margin-top:6px">✦ La nueva forma de reservar en Latinoamérica</span>
       <h1 class="in2" style="margin:14px auto 10px;max-width:720px">Tu negocio, en una app <span class="grad-t">que brilla.</span></h1>
       <p class="mut in3" style="max-width:520px;margin:0 auto 22px;font-size:16.5px">Reservas, recordatorios, caja, fidelidad y reportes en un solo lugar. Para barberías, salones, uñas, spas y estéticas.</p>
       <div class="row in4" style="justify-content:center;flex-wrap:wrap">
@@ -51,6 +55,11 @@ export function render(el) {
     <section style="margin-top:46px" id="cerca"></section>
 
     <section style="margin-top:46px">
+      <div class="row sp wrapx" style="margin-bottom:12px"><div><h2>Glow en Latinoamérica</h2><p class="mut sm" style="margin:4px 0 0">Nacimos en Panamá y vamos a toda la región. Toca un pin para ver su app.</p></div><span class="pill"><i class="dot"></i> ${S.tenants().filter(t => t.estado === 'activo').length} negocios</span></div>
+      <div id="mapa-latam">${mapa({ vista: 'latam', alto: Math.min(560, Math.max(380, innerWidth * .6)) })}</div>
+    </section>
+
+    <section style="margin-top:46px">
       <h2 style="margin-bottom:16px">Todo lo que tu negocio necesita</h2>
       <div class="grid g3 stagger">
         ${f.map(([i, t, d]) => `<div class="card tilt flat"><div class="ico pop" style="background:var(--grad);color:var(--ink);border:0">${ic(i)}</div><h3 style="margin:14px 0 4px">${t}</h3><p class="mut sm" style="margin:0">${d}</p></div>`).join('')}
@@ -60,12 +69,12 @@ export function render(el) {
     <section style="margin-top:46px" id="planes">
       <h2>Planes</h2><p class="mut sm" style="margin:4px 0 16px">Precio fundador para los primeros 10 negocios: instalación a mitad de precio. Paga mensual o anual (2 meses gratis).</p>
       <div class="grid g3 rsp stagger">${[
-        ['Esencial', 35, 350, 'Para empezar a llenar tu agenda', ['Tu app de reservas con tu marca y tu link', 'Recordatorios automáticos', 'Caja con ITBMS y cierre del día', 'Tarjeta de fidelidad y referidos', 'Fila sin cita, pase QR y pantalla TV', 'Clientes, servicios y precios por profesional', 'Hasta 3 profesionales']],
-        ['Pro', 79, 350, 'El más elegido: vende más en automático', ['Todo lo de Esencial', 'Asistente con IA en WhatsApp que agenda', 'Depósitos con Yappy o tarjeta', 'Ofertas, cupones, regalos, paquetes y membresías', 'Campañas: te toca tu corte, cumpleaños, día flojo', 'Reportes completos y exportables', 'Hasta 10 profesionales']],
-        ['Negocio', 149, 600, 'Para cadenas y varias sucursales', ['Todo lo de Pro', 'Varias sucursales en un solo panel', 'Profesionales ilimitados', 'Inventario por sucursal', 'Soporte prioritario y capacitación', 'Factura electrónica DGI integrada']],
+        ['Esencial', 35, 350, 'Para empezar a llenar tu agenda', ESE],
+        ['Pro', 79, 350, 'El más elegido: vende más en automático', [...ESE.filter(x => x !== 'Hasta 3 profesionales'), ...PRO]],
+        ['Negocio', 149, 600, 'Para cadenas y varias sucursales', [...ESE.filter(x => x !== 'Hasta 3 profesionales'), ...PRO.filter(x => x !== 'Hasta 10 profesionales'), ...NEG]],
       ].map(([n, p, ins, d, f], i) => `<div class="card ${i === 1 ? 'glass' : 'flat'} tilt" style="${i === 1 ? 'border:2px solid var(--brand)' : ''}"><div class="pop"><div class="row sp"><h3>${n}</h3>${i === 1 ? '<span class="pill br">Más elegido</span>' : ''}</div><p class="xs mut" style="margin:4px 0 10px">${d}</p>
         <div style="font-size:38px;font-weight:800;letter-spacing:-.03em">$${p}<span class="sm mut" style="font-weight:500">/mes</span></div><div class="xs mut">o $${p * 10}/año · instalación <s>$${ins}</s> <b style="color:var(--txt)">$${ins / 2}</b> precio fundador</div>
-        <div class="col" style="gap:6px;margin:14px 0">${f.map(x => `<div class="row sm" style="gap:8px;align-items:flex-start"><span style="color:var(--ok)">${ic('check', 16)}</span>${x}</div>`).join('')}</div><a class="btn ${i === 1 ? '' : 'ghost'} w" href="#/glow/nuevo">Empezar</a></div></div>`).join('')}</div>
+        <div class="col" style="gap:6px;margin:14px 0">${f.map(x => { const nuevo = (i === 1 && PRO.includes(x)) || (i === 2 && NEG.includes(x)); return `<div class="row sm" style="gap:8px;align-items:flex-start;${nuevo ? 'font-weight:600' : ''}"><span style="color:${nuevo ? 'var(--brand)' : 'var(--ok)'}">${ic(nuevo ? 'spark' : 'check', 16)}</span>${x}</div>`; }).join('')}</div><a class="btn ${i === 1 ? '' : 'ghost'} w" href="#/glow/nuevo">Empezar</a></div></div>`).join('')}</div>
     </section>
 
     <section class="card glass c" style="margin-top:46px;padding:30px 20px">
@@ -82,11 +91,11 @@ export function render(el) {
   const pintaCerca = () => {
     const u = ubic();
     if (!u) { zona.innerHTML = `<div class="card glass c" style="padding:28px 20px"><div class="ico" style="margin:0 auto;width:60px;height:60px;border-radius:20px;background:var(--grad);color:var(--ink);border:0">${ic('globe', 28)}</div>
-      <h2 style="margin:14px 0 6px">Negocios cerca de ti</h2><p class="mut" style="max-width:420px;margin:0 auto 16px">Te mostramos solo las barberías, salones y spas que tienes cerca, con sus estrellas y su próxima hora libre.</p>
+      <h2 style="margin:14px 0 6px">Negocios cerca de ti</h2><p class="mut" style="max-width:420px;margin:0 auto 16px">En toda Latinoamérica. Te mostramos solo las barberías, salones y spas que tienes cerca, con sus estrellas y su próxima hora libre.</p>
       <button class="btn" data-a="gps">${ic('globe', 18)} Usar mi ubicación</button>
-      <div class="row" style="max-width:420px;margin:14px auto 0"><select id="zona-sel"><option value="">…o elige tu zona</option>${Object.keys(S.ZONAS).filter((k, i, a) => !/[áéíóú]/.test(k) || !a.includes(k.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))).filter(k => k !== 'panama').map(k => `<option value="${k}">${k.replace(/\b\w/g, c => c.toUpperCase())}</option>`).join('')}</select></div>
+      <div class="row" style="max-width:420px;margin:14px auto 0"><select id="zona-sel"><option value="">…o elige tu ciudad</option>${Object.entries(CIUDADES).map(([p, cs]) => `<optgroup label="${esc(p)}">${cs.map(([n, la, lo]) => `<option value="${la},${lo}">${esc(n)}</option>`).join('')}</optgroup>`).join('')}</select></div>
       <p class="xs dim" style="margin-top:10px">Tu ubicación solo se usa en este celular para ordenar los negocios. No se guarda.</p></div>`;
-      zona.querySelector('#zona-sel').onchange = e => { const z = S.ZONAS[e.target.value]; if (z) { sessionStorage.setItem('glow.ubic', JSON.stringify({ lat: z[0], lng: z[1], nombre: e.target.selectedOptions[0].text })); pintaCerca(); } };
+      zona.querySelector('#zona-sel').onchange = e => { if (!e.target.value) return; const [la, lo] = e.target.value.split(',').map(Number); sessionStorage.setItem('glow.ubic', JSON.stringify({ lat: la, lng: lo, nombre: e.target.selectedOptions[0].text })); pintaCerca(); };
       return; }
     const yo = [u.lat, u.lng];
     const lista = S.tenants().filter(t => t.estado === 'activo').map(t => ({ t, d: S.km(yo, S.geoDe(t)) })).filter(x => x.d <= radio).sort((a, b) => a.d - b.d);
@@ -109,6 +118,6 @@ export function render(el) {
     if (x.dataset.a === 'gps') { if (!navigator.geolocation) return toast('Tu navegador no comparte ubicación: elige tu zona', 'globe'); x.textContent = 'Buscando…';
       navigator.geolocation.getCurrentPosition(p => { sessionStorage.setItem('glow.ubic', JSON.stringify({ lat: p.coords.latitude, lng: p.coords.longitude, nombre: 'Tu ubicación' })); pintaCerca(); },
         () => { toast('No pudimos ver tu ubicación: elige tu zona', 'globe'); pintaCerca(); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }); } };
-  pintaCerca();
-  return () => { parar && parar(); };
+  pintaCerca(); const pararL = animarMapa(el.querySelector('#mapa-latam'));
+  return () => { parar && parar(); pararL(); };
 }

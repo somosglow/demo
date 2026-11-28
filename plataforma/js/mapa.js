@@ -1,37 +1,49 @@
 import * as S from './store.js';
 import { esc, ini } from './ui.js';
+import { AMERICA } from './america.js';
 
 /* Mapa 3D de Panamá: plano inclinado con perspectiva, costa dibujada y un pin por negocio con sus estrellas. */
-const COSTA = [[-82.56, 9.57], [-82.25, 9.38], [-82.0, 9.1], [-81.75, 9.0], [-81.5, 8.82], [-81.2, 8.78], [-80.85, 8.87], [-80.5, 9.05], [-80.15, 9.2], [-79.9, 9.36], [-79.6, 9.6], [-79.2, 9.58], [-78.9, 9.45], [-78.5, 9.4], [-78.15, 9.25], [-77.85, 9.0], [-77.55, 8.78], [-77.36, 8.67],
-  [-77.25, 8.3], [-77.45, 7.95], [-77.75, 7.6], [-77.9, 7.25], [-78.2, 7.5], [-78.4, 8.05], [-78.15, 8.35], [-78.45, 8.45], [-78.75, 8.75], [-79.1, 9.0], [-79.52, 8.94], [-79.75, 8.75], [-79.95, 8.5], [-80.3, 8.3], [-80.45, 8.05], [-80.1, 7.6], [-80.35, 7.25], [-80.85, 7.22],
-  [-81.0, 7.6], [-81.2, 7.9], [-81.6, 8.05], [-82.0, 8.15], [-82.3, 8.2], [-82.9, 8.03], [-82.85, 8.4], [-82.95, 8.9], [-82.75, 9.2], [-82.56, 9.57]];
-const VISTAS = { ciudad: [-80.25, -79.15, 8.3, 9.45], pais: [-83.2, -77.1, 7.0, 9.8] };
+const VISTAS = { pais: [-83.2, -77.1, 7.0, 9.8], latam: [-118, -33, -56, 33] };
+export const CIUDADES = {
+  'Panamá': [['Ciudad de Panamá', 8.983, -79.519], ['San Francisco', 8.993, -79.505], ['Costa del Este', 9.012, -79.462], ['Vía España', 8.999, -79.522], ['Bella Vista', 8.983, -79.527], ['El Dorado', 9.007, -79.546], ['San Miguelito', 9.033, -79.5], ['Arraiján', 8.948, -79.66], ['La Chorrera', 8.88, -79.783], ['Coronado', 8.534, -79.893], ['Colón', 9.359, -79.9], ['Santiago', 8.1, -80.983], ['Chitré', 7.964, -80.429], ['David', 8.427, -82.431], ['Boquete', 8.78, -82.441], ['Bocas del Toro', 9.34, -82.241]],
+  'México': [['Ciudad de México', 19.433, -99.133], ['Guadalajara', 20.659, -103.349], ['Monterrey', 25.686, -100.316], ['Cancún', 21.161, -86.851], ['Puebla', 19.041, -98.206]],
+  'Colombia': [['Bogotá', 4.711, -74.072], ['Medellín', 6.244, -75.581], ['Cali', 3.451, -76.532], ['Barranquilla', 10.964, -74.796], ['Cartagena', 10.391, -75.479]],
+  'Costa Rica': [['San José', 9.928, -84.091]], 'Guatemala': [['Ciudad de Guatemala', 14.634, -90.507]], 'El Salvador': [['San Salvador', 13.692, -89.218]], 'Honduras': [['Tegucigalpa', 14.072, -87.192], ['San Pedro Sula', 15.506, -88.025]], 'Nicaragua': [['Managua', 12.114, -86.236]],
+  'República Dominicana': [['Santo Domingo', 18.486, -69.931], ['Santiago de los Caballeros', 19.451, -70.697]], 'Puerto Rico': [['San Juan', 18.466, -66.106]],
+  'Venezuela': [['Caracas', 10.48, -66.904], ['Maracaibo', 10.642, -71.613]], 'Ecuador': [['Quito', -0.18, -78.468], ['Guayaquil', -2.17, -79.922]], 'Perú': [['Lima', -12.046, -77.043], ['Arequipa', -16.409, -71.537]],
+  'Bolivia': [['La Paz', -16.49, -68.119], ['Santa Cruz', -17.783, -63.182]], 'Chile': [['Santiago', -33.449, -70.669], ['Viña del Mar', -33.025, -71.552]], 'Argentina': [['Buenos Aires', -34.604, -58.382], ['Córdoba', -31.42, -64.188], ['Rosario', -32.947, -60.639]],
+  'Uruguay': [['Montevideo', -34.901, -56.165]], 'Paraguay': [['Asunción', -25.264, -57.576]], 'Brasil': [['São Paulo', -23.551, -46.633], ['Río de Janeiro', -22.907, -43.173]],
+  'Estados Unidos': [['Miami', 25.762, -80.192], ['Houston', 29.76, -95.37], ['Nueva York', 40.713, -74.006]] };
+const CAPITALES = [['Ciudad de México', -99.13, 19.43], ['Bogotá', -74.07, 4.71], ['Lima', -77.04, -12.05], ['Santiago', -70.67, -33.45], ['Buenos Aires', -58.38, -34.6], ['Caracas', -66.9, 10.48], ['Quito', -78.47, -0.18], ['São Paulo', -46.63, -23.55], ['Panamá', -79.52, 8.98], ['Santo Domingo', -69.93, 18.49], ['Guatemala', -90.51, 14.63], ['La Paz', -68.12, -16.49], ['Montevideo', -56.17, -34.9], ['Asunción', -57.58, -25.26]];
 
-export function mapa({ vista = 'pais', alto = 420, enlace = s => '#/s/' + s, centro = null, radio = 10, ids = null } = {}) {
+export function mapa({ vista = 'latam', alto = 420, enlace = s => '#/s/' + s, centro = null, radio = 10, ids = null } = {}) {
   let caja = VISTAS[vista];
   if (centro) { const dLa = radio * 1.25 / 111, dLo = radio * 1.25 / (111 * Math.cos(centro[0] * Math.PI / 180)); caja = [centro[1] - dLo, centro[1] + dLo, centro[0] - dLa * .8, centro[0] + dLa * .8]; }
   const [x0, x1, y0, y1] = caja; const W = 1000, H = Math.round(W * (y1 - y0) / (x1 - x0) * 1.15);
   const P = ([lon, lat]) => [((lon - x0) / (x1 - x0)) * W, ((y1 - lat) / (y1 - y0)) * H];
-  const costa = COSTA.map(P).map(p => p.map(n => n.toFixed(1)).join(',')).join(' ');
+  const tierra = AMERICA.map(([n, rings]) => `<path d="${rings.map(r => { const q = r.map(P); if (q.every(([x, y]) => x < -50 || x > W + 50 || y < -50 || y > H + 50)) return ''; return 'M' + q.map(([x, y]) => x.toFixed(1) + ' ' + y.toFixed(1)).join('L') + 'Z'; }).join('')}"><title>${esc(n)}</title></path>`).join('');
   const ts = S.tenants().filter(t => t.estado === 'activo' && (!ids || ids.includes(t.id)));
-  const vis = ts.map(t => { const [lat, lon] = S.geoDe(t); const [x, y] = P([lon, lat]); return { t, x, y }; }).filter(o => o.x > -20 && o.x < W + 20 && o.y > -20 && o.y < H + 20);
-  const anclas = vis.map((o, i) => `<span class="manc" data-i="${i}" style="left:${o.x / W * 100}%;top:${o.y / H * 100}%;--c:${o.t.color}"></span>`).join('');
-  const pins = vis.map((o, i) => { const t = o.t; const r = S.reviews(t.id); const pr = r.length ? (r.reduce((a, b) => a + b.estrellas, 0) / r.length).toFixed(1) : '—';
+  let vis = ts.map(t => { const [lat, lon] = S.geoDe(t); const [x, y] = P([lon, lat]); return { t, x, y }; }).filter(o => o.x > -20 && o.x < W + 20 && o.y > -20 && o.y < H + 20);
+  if (!centro) { const grupos = []; vis.forEach(o => { const g = grupos.find(g => Math.hypot(g.x - o.x, g.y - o.y) < 45); if (g) g.ts.push(o.t); else grupos.push({ x: o.x, y: o.y, ts: [o.t], t: o.t }); }); vis = grupos; }
+  const anclas = vis.map((o, i) => `<span class="manc" data-i="${i}" style="left:${o.x / W * 100}%;top:${o.y / H * 100}%;--c:${o.ts && o.ts.length > 1 ? '#0F1420' : o.t.color}"></span>`).join('');
+  const pins = vis.map((o, i) => { const t = o.t; const grupo = o.ts && o.ts.length > 1;
+    const rs = (grupo ? o.ts : [t]).flatMap(x => S.reviews(x.id)); const pr = rs.length ? (rs.reduce((a, b) => a + b.estrellas, 0) / rs.length).toFixed(1) : '—';
+    if (grupo) return `<a class="mpin" data-p="${i}" href="#cerca" onclick="document.getElementById('cerca')?.scrollIntoView({behavior:'smooth'});return false" style="--c:#0F1420;--c2:#5B6475;--h:40px"><span class="mpin-card"><i>${o.ts.length}</i><span><b>${o.ts.length} negocios aquí</b><small>★ ${pr} · toca para ver los cercanos</small></span></span><span class="mpin-stem"></span></a>`;
     return `<a class="mpin" data-p="${i}" href="${enlace(t.slug)}" style="--c:${t.color};--c2:${t.color2};--h:${34 + (i % 3) * 40}px"><span class="mpin-card">${t.logo ? `<i style="background:#fff url(${t.logo}) center/contain no-repeat"></i>` : `<i>${esc(ini(t.nombre))}</i>`}<span><b>${esc(t.nombre)}</b><small>★ ${pr} · ${esc(S.TIPOS[t.tipo] || '')}</small></span></span><span class="mpin-stem"></span></a>`; }).join('');
-  const ciudades = [['Ciudad de Panamá', -79.52, 8.99], ['Coronado', -79.89, 8.53], ['Colón', -79.9, 9.36], ['David', -82.43, 8.43], ['Santiago', -80.98, 8.1], ['Chitré', -80.43, 7.96], ['La Chorrera', -79.78, 8.88], ['Bocas del Toro', -82.24, 9.34]].map(([n, lon, lat]) => { const [x, y] = P([lon, lat]); return x > 0 && x < W && y > 0 && y < H ? `<text x="${x}" y="${y + 26}" text-anchor="middle" class="mtxt">${n}</text><circle cx="${x}" cy="${y}" r="4" class="mcity"/>` : ''; }).join('');
-  return `<div class="mapa3d" style="height:${alto}px"><div class="mplano" style="aspect-ratio:${W}/${H}">
+  const ciudades = (vista === 'latam' && !centro ? CAPITALES : []).map(([n, lon, lat]) => { const [x, y] = P([lon, lat]); return `<circle cx="${x}" cy="${y}" r="4" class="mcity"/><text x="${x}" y="${y + 24}" text-anchor="middle" class="mtxt">${n}</text>`; }).join('');
+  const ancho = H / W > 0.75 ? `width:min(92%, ${Math.round(alto * 1.15 * W / H)}px);left:0;right:0;margin:0 auto` : 'left:4%;right:4%';
+  return `<div class="mapa3d" style="height:${alto}px"><div class="mplano" style="aspect-ratio:${W}/${H};${ancho}">
     <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="tierra" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F3EFE8"/></linearGradient>
       <pattern id="rej" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="rgba(15,20,32,.05)"/></pattern><filter id="sombra"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#0F1420" flood-opacity=".18"/></filter></defs>
       <rect width="${W}" height="${H}" fill="url(#rej)"/>
-      <polygon points="${costa}" fill="url(#tierra)" stroke="color-mix(in srgb,var(--brand) 55%,#fff)" stroke-width="3" filter="url(#sombra)"/>
-      <path d="${(() => { const a = P([-79.92, 9.36]), b = P([-79.6, 8.96]); return `M${a[0]},${a[1]} Q${(a[0] + b[0]) / 2 + 30},${(a[1] + b[1]) / 2} ${b[0]},${b[1]}`; })()}" fill="none" stroke="#8EC9FF" stroke-width="5" stroke-dasharray="2 10" stroke-linecap="round" opacity=".9"><title>Canal de Panamá</title></path>
+      <g fill="url(#tierra)" stroke="color-mix(in srgb,var(--brand) 45%,#c9c3b8)" stroke-width="${centro ? 2.5 : 1.4}" stroke-linejoin="round" filter="url(#sombra)">${tierra}</g>
       ${centro ? (() => { const [cx, cy] = P([centro[1], centro[0]]); const rr = radio / ((x1 - x0) * 111 * Math.cos(centro[0] * Math.PI / 180)) * W; return `<circle cx="${cx}" cy="${cy}" r="${rr}" fill="color-mix(in srgb,var(--brand) 8%,transparent)" stroke="var(--brand)" stroke-width="2" stroke-dasharray="8 8"/>`; })() : ciudades}</svg>${anclas}${centro ? (() => { const [cx, cy] = P([centro[1], centro[0]]); return `<span class="myo" style="left:${cx / W * 100}%;top:${cy / H * 100}%"></span>`; })() : ''}</div><div class="mover">${pins}</div></div>`;
 }
 
 export const CSS_MAPA = `
 .mapa3d{position:relative;perspective:1100px;overflow:hidden;border-radius:28px;background:radial-gradient(120% 90% at 50% 10%,#EAF4FF,#DCEBFA 55%,#CFE2F5);box-shadow:var(--sh)}
 .mapa3d::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,transparent 70%,rgba(220,235,250,.9))}
-.mplano{position:absolute;left:4%;right:4%;top:2%;transform-style:preserve-3d;transform:rotateX(48deg) rotateZ(-6deg) translateY(-6%);animation:mflot 9s ease-in-out infinite;transform-origin:50% 60%}
+.mplano{position:absolute;top:2%;transform-style:preserve-3d;transform:rotateX(48deg) rotateZ(-6deg) translateY(-6%);animation:mflot 9s ease-in-out infinite;transform-origin:50% 60%}
 @keyframes mflot{50%{transform:rotateX(52deg) rotateZ(-3deg) translateY(-6%)}}
 .mplano svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .mtxt{font:600 18px Poppins,sans-serif;fill:#5B6475}.mcity{fill:#0F1420;opacity:.35}
