@@ -108,11 +108,30 @@ export function selloHtml(t) {
   if (k === 'estrella') return '<span class="sl-ic">★</span>';
   return `<span class="sl-ini">${esc(ini(t.nombre))}</span>`;
 }
+export const DISENOS = {
+  barber: { n: 'Barbería clásica', d: 'Cuero, poste de barbero y sellos de cera' },
+  neon: { n: 'Neón urbano', d: 'Negro con luces de neón de tu color' },
+  marmol: { n: 'Mármol y oro', d: 'Mármol blanco con sellos de oro' },
+  botanico: { n: 'Botánico', d: 'Verde suave con hojas, para spa' },
+  holo: { n: 'Holográfica', d: 'Tornasol con brillos, para uñas' },
+  lujo: { n: 'Negro y oro', d: 'Art déco de lujo, sellos hexagonales' },
+  simple: { n: 'Simple', d: 'Tus colores, oscuro, claro o tu portada' },
+};
+export const DISENO_TIPO = { barberia: 'barber', unas: 'holo', spa: 'botanico', salon: 'marmol', estetica: 'lujo' };
+const DECO = {
+  barber: '<i class="dz-pole"></i><svg class="dz-stitch" viewBox="0 0 100 60" preserveAspectRatio="none"><rect x="1.5" y="1.5" width="97" height="57" rx="5" fill="none" stroke="rgba(214,170,98,.45)" stroke-width=".5" stroke-dasharray="1.6 1.2" vector-effect="non-scaling-stroke"/></svg>',
+  neon: '<i class="dz-grid"></i><i class="dz-glow"></i>',
+  marmol: '<svg class="dz-marble" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice"><filter id="mrb"><feTurbulence type="fractalNoise" baseFrequency=".012 .03" numOctaves="4" seed="7"/><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .55  0 0 0 0 .57  0 0 0 -2.2 1.35"/></filter><rect width="400" height="260" filter="url(#mrb)" opacity=".55"/></svg><i class="dz-frame"></i>',
+  botanico: '<svg class="dz-leaf l1" viewBox="0 0 120 120"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 110 C40 70 70 50 110 10"/><path d="M30 88c-10-14-8-30 6-38 6 16 2 30-6 38z" fill="currentColor" fill-opacity=".18"/><path d="M50 68c-8-16-2-32 14-36 2 18-4 30-14 36z" fill="currentColor" fill-opacity=".18"/><path d="M72 46c-4-16 4-30 20-30-2 16-8 26-20 30z" fill="currentColor" fill-opacity=".18"/><path d="M42 84c16 4 30-2 36-16-16-4-28 2-36 16z" fill="currentColor" fill-opacity=".18"/><path d="M64 62c16 2 28-6 32-20-16-2-26 6-32 20z" fill="currentColor" fill-opacity=".18"/></g></svg><svg class="dz-leaf l2" viewBox="0 0 120 120"><g fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 110 C40 70 70 50 110 10"/><path d="M30 88c-10-14-8-30 6-38 6 16 2 30-6 38z" fill="currentColor" fill-opacity=".18"/><path d="M50 68c-8-16-2-32 14-36 2 18-4 30-14 36z" fill="currentColor" fill-opacity=".18"/><path d="M42 84c16 4 30-2 36-16-16-4-28 2-36 16z" fill="currentColor" fill-opacity=".18"/></g></svg>',
+  holo: '<i class="dz-iri"></i><span class="dz-sp" style="left:12%;top:18%">✦</span><span class="dz-sp" style="left:78%;top:12%;animation-delay:.6s">✦</span><span class="dz-sp" style="left:88%;top:62%;animation-delay:1.2s">✧</span><span class="dz-sp" style="left:40%;top:8%;animation-delay:1.8s;font-size:10px">✦</span><span class="dz-sp" style="left:6%;top:72%;animation-delay:.9s;font-size:9px">✧</span>',
+  lujo: '<svg class="dz-deco" viewBox="0 0 400 120" preserveAspectRatio="xMidYMin slice"><g fill="none" stroke="url(#oroL)" stroke-width="1"><defs><linearGradient id="oroL" x1="0" x2="1"><stop offset="0" stop-color="#8A6A2B"/><stop offset=".5" stop-color="#F3D88C"/><stop offset="1" stop-color="#8A6A2B"/></linearGradient></defs>' + [0, 1, 2, 3, 4, 5, 6].map(i => `<path d="M200 -10 L${20 + i * 60} 120"/>`).join('') + '<circle cx="200" cy="-10" r="40"/><circle cx="200" cy="-10" r="60"/><circle cx="200" cy="-10" r="80"/></g></svg><i class="dz-frame"></i>',
+};
 export function tarjetaFid(t, { nombre = 'Tu nombre aquí', n = 0, regalo = 0, qr = '', premio = false, nuevo = -1 } = {}) {
   const f = t.fidelidad || {}; const meta = f.meta || 10; const fondo = f.fondo || 'marca'; if (premio) n = meta;
   const bg = fondo === 'oscuro' ? 'linear-gradient(150deg,#1E1F25,#0B0C0F)' : fondo === 'portada' && t.portada ? `linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.7)),url(${t.portada}) center/cover` : fondo === 'claro' ? 'linear-gradient(150deg,#FFFFFF,#F1EFEA)' : `linear-gradient(135deg,${t.color2 || '#FFB547'},${t.color || '#FF7A59'})`;
   const tx = fondo === 'claro' ? '#0F1420' : '#fff';
-  return `<div class="fid ${n >= meta ? 'full' : ''}" style="background:${bg};color:${tx};--sc:${t.color || '#FF7A59'}"><i class="holo"></i>${n >= meta ? '<div class="fid-rib">¡Premio listo! 🎉</div>' : ''}
+  const dz = f.diseno || DISENO_TIPO[t.tipo] || 'simple'; const D = DISENOS[dz] && dz !== 'simple';
+  return `<div class="fid ${D ? 'd-' + dz : ''} ${n >= meta ? 'full' : ''}" style="${D ? '' : `background:${bg};color:${tx};`}--sc:${t.color || '#FF7A59'};--sc2:${t.color2 || '#FFB547'}"><i class="holo"></i>${D ? DECO[dz] || '' : ''}${n >= meta ? '<div class="fid-rib">¡Premio listo! 🎉</div>' : ''}
     <div class="row sp"><div class="row" style="gap:10px">${t.logo ? `<span class="fid-logo" style="background-image:url(${t.logo})"></span>` : `<span class="fid-logo fid-ini">${esc(ini(t.nombre))}</span>`}<div><div class="b" style="font-size:15px">${esc(t.nombre)}</div><div class="xs" style="opacity:.8;letter-spacing:.12em">TARJETA DE FIDELIDAD</div></div></div><span style="font-size:22px">🎁</span></div>
     <div class="fid-nom">${esc(nombre)}</div>
     <div class="fid-st" style="grid-template-columns:repeat(${meta > 10 ? 6 : 5},1fr)">${Array.from({ length: meta }, (_, i) => `<div class="fs ${i < n ? 'on' : ''} ${i < regalo ? 'reg' : ''} ${i === n && n < meta ? 'next' : ''} ${i === nuevo ? 'nuevo' : ''}" style="animation-delay:${nuevo >= 0 ? (i === nuevo ? 0 : -1) : i * .09}s">${i < n ? selloHtml(t) : i === meta - 1 ? '<span class="sl-ic" style="opacity:.9">🎁</span>' : `<span class="xs" style="opacity:.55">${i + 1}</span>`}${i < regalo ? '<i class="fs-tag">Regalo</i>' : ''}</div>`).join('')}</div>
