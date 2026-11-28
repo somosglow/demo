@@ -19,7 +19,7 @@
  */
 const HEAD = ['id','creado','origen','nombre','negocio','tipo','zona','whatsapp','email','acepta','modo','equipo',
   'fecha','hora','estado','dueno','ultimo_toque','proximo_toque','toques','notas','reunion','enviados','actualizado'];
-const ESTADOS = ['nuevo','confirmado','demo hecha','propuesta','cliente','perdido','no contactar'];
+const ESTADOS = ['prospecto','nuevo','confirmado','demo hecha','propuesta','cliente','perdido','no contactar'];
 const TZ = 'America/Panama';
 const SHEET_ID = '1sO8vWgdo5J_CBmCvGlhsPXXcra8xSqCfXqGC8dAWnFo'; // hoja "Glow Ventas" en somosglowapp@gmail.com
 function libro() { return SpreadsheetApp.openById(SHEET_ID); }
