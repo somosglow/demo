@@ -1,9 +1,9 @@
 {
- "id": "/glow-demo/",
+ "id": "/demo/glow-demo/",
  "name": "Glow Demo",
  "short_name": "Glow Demo",
- "start_url": "/glow-demo/",
- "scope": "/glow-demo/",
+ "start_url": "/demo/glow-demo/",
+ "scope": "/demo/glow-demo/",
  "display": "standalone",
  "orientation": "portrait",
  "background_color": "#FFFFFF",
@@ -11,17 +11,17 @@
  "lang": "es",
  "icons": [
   {
-   "src": "/glow-demo/icons/c-192.png",
+   "src": "/demo/glow-demo/icons/c-192.png",
    "sizes": "192x192",
    "type": "image/png"
   },
   {
-   "src": "/glow-demo/icons/c-512.png",
+   "src": "/demo/glow-demo/icons/c-512.png",
    "sizes": "512x512",
    "type": "image/png"
   },
   {
-   "src": "/glow-demo/icons/c-mask.png",
+   "src": "/demo/glow-demo/icons/c-mask.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "maskable"
