@@ -20,7 +20,7 @@ export const ITBMS = 0.07;
 let db = null;
 const COLS = ['tenants', 'services', 'staff', 'clients', 'bookings', 'sales', 'waitlist', 'reviews', 'offers', 'coupons', 'giftcards', 'products', 'packages', 'cpackages', 'expenses', 'queue', 'outbox', 'promos', 'vouchers'];
 function load() {
-  try { const x = JSON.parse(localStorage.getItem(KEY)); if (x && x.v === 4) { COLS.forEach(k => x[k] = x[k] || []); x.tenants.forEach(t => { t.estilo = t.estilo || estiloDe(t.tipo); if (t.demo && !x.promos.some(p => p.tid === t.id)) seedPromos(x, t); }); return x; } } catch (e) {}
+  try { const x = JSON.parse(localStorage.getItem(KEY)); if (x && x.v === 4) { COLS.forEach(k => x[k] = x[k] || []); x.tenants.forEach(t => { t.estilo = t.estilo || estiloDe(t.tipo); if (t.demo && !x.promos.some(p => p.tid === t.id)) { seedPromos(x, t); if (t.slug === 'barberia-ejemplo') t.destacado = { hasta: ymd(addDays(new Date(), 6)), plan: 'Semana' }; } }); return x; } } catch (e) {}
   const s = seed(); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} return s;
 }
 function save(origen = 'local') {
