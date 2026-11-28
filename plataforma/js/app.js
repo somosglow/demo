@@ -10,6 +10,8 @@ const rutas = [
   [/^#\/s\/([^/]+)\/panel(?:\/(\w+))?\/?$/, () => import('./dueno.js')],
   [/^#\/glow(?:\/(\w+))?\/?$/, () => import('./glow.js')],
   [/^#\/s\/([^/]+)\/tv\/?$/, () => import('./tv.js')],
+  [/^#\/s\/([^/]+)\/recepcion\/?$/, () => import('./recepcion.js')],
+  [/^#\/s\/([^/]+)\/accesos\/?$/, () => import('./accesos.js')],
   [/^#\/guia\/?$/, () => import('./guia.js')],
 ];
 async function ir() {

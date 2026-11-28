@@ -1,7 +1,8 @@
 import * as S from './store.js';
-import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, MESES_L, toast, sheet, closeSheet, tilt, setBrand, vibrar, contar, wa, confetti, leerImagen, estrellas, avatar } from './ui.js';
+import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, MESES_L, toast, sheet, closeSheet, tilt, setBrand, vibrar, contar, wa, confetti, leerImagen, estrellas, avatar , pickerEstilos, ESTILOS } from './ui.js';
 import qrcode from '../vendor/qrcode.mjs';
 
+const BASICO = ['inicio', 'agenda', 'caja', 'clientes', 'catalogo', 'ajustes'];
 const SECC = [['inicio', 'home', 'Inicio'], ['agenda', 'cal', 'Agenda'], ['fila', 'users', 'Fila sin cita'], ['caja', 'cash', 'Caja'], ['clientes', 'heart', 'Clientes'], ['catalogo', 'scissors', 'Servicios y productos'], ['promos', 'gift', 'Ofertas y regalos'], ['marketing', 'spark', 'Marketing'], ['mensajes', 'bell', 'Mensajes'], ['reportes', 'chart', 'Reportes'], ['equipo', 'user', 'Equipo'], ['ajustes', 'gear', 'Ajustes']];
 const METODOS = ['Yappy', 'Tarjeta', 'Efectivo', 'Transferencia'];
 
@@ -10,7 +11,7 @@ export function render(el, [slug, sec = 'inicio']) {
   const tid = t0.id; const T = () => S.tenant(tid);
   setBrand(t0); document.title = t0.nombre + ' · Panel';
   const key = 'glow.dueno.' + tid;
-  const st = { dia: S.ymd(new Date()), q: '', seg: 'todos', tab: 'servicios', ptab: 'ofertas', per: 'mes', suc: 'todas' };
+  const st = { dia: S.ymd(new Date()), q: '', seg: 'todos', tab: 'servicios', ptab: 'vendibles', per: 'mes', suc: 'todas' };
   S.procesarAvisos(tid);
 
   function gate() {
@@ -29,8 +30,8 @@ export function render(el, [slug, sec = 'inicio']) {
     el.innerHTML = `
     <aside class="side"><a class="logo" href="#/" style="padding:4px 8px 14px"><img src="img/glow-logo-dark.png" style="height:24px" alt="Glow"></a>
       <div class="row" style="padding:0 8px 12px">${t.logo ? `<div class="av" style="width:36px;height:36px;background:#fff url(${t.logo}) center/contain no-repeat;border:1px solid var(--line)"></div>` : `<div class="av" style="width:36px;height:36px;font-size:12px">${esc(ini(t.nombre))}</div>`}<div class="g"><div class="b sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.nombre)}</div><div class="xs mut">Plan ${esc(t.plan)}</div></div></div>
-      ${SECC.map(([k, i, l]) => `<a href="#/s/${t.slug}/panel/${k}" class="${sec === k ? 'on' : ''}">${ic(i)}<span class="g">${l}</span>${k === 'fila' && fila ? `<span class="pill br">${fila}</span>` : ''}${k === 'mensajes' && nuevos ? `<span class="pill br">${nuevos}</span>` : ''}</a>`).join('')}
-      <div class="g" style="min-height:10px"></div><a href="#/s/${t.slug}" target="_blank">${ic('link')}Ver mi app</a><a href="#/s/${t.slug}/tv" target="_blank">${ic('play')}Pantalla TV</a><a href="#/s/${t.slug}/equipo">${ic('scissors')}App del equipo</a><a href="#/guia">${ic('book')}Guía</a></aside>
+      ${SECC.filter(([k]) => !t.modoInicio || BASICO.includes(k) || k === sec).map(([k, i, l]) => `<a href="#/s/${t.slug}/panel/${k}" class="${sec === k ? 'on' : ''}">${ic(i)}<span class="g">${l}</span>${k === 'fila' && fila ? `<span class="pill br">${fila}</span>` : ''}${k === 'mensajes' && nuevos ? `<span class="pill br">${nuevos}</span>` : ''}</a>`).join('')}
+      ${t.modoInicio ? `<a href="#" data-a="modo" style="color:var(--brand);font-weight:600">${ic('plus')}Ver todo el sistema</a>` : ''}<div class="g" style="min-height:10px"></div><a href="#/s/${t.slug}" target="_blank">${ic('link')}Ver mi app</a><a href="#/s/${t.slug}/recepcion">${ic('bell')}Recepción</a><a href="#/s/${t.slug}/tv" target="_blank">${ic('play')}Pantalla TV</a><a href="#/s/${t.slug}/accesos">${ic('qr')}Accesos y QR</a><a href="#/s/${t.slug}/equipo">${ic('scissors')}App del equipo</a><a href="#/guia">${ic('book')}Guía</a></aside>
     <div class="main">${body}</div>
     <nav class="tabbar mobnav">${[['inicio', 'home', 'Inicio'], ['agenda', 'cal', 'Agenda'], ['caja', 'cash', 'Caja'], ['clientes', 'heart', 'Clientes'], ['mas', 'gear', 'Más']].map(([k, i, l]) => `<button class="${sec === k || (k === 'mas' && !['inicio', 'agenda', 'caja', 'clientes'].includes(sec)) ? 'on' : ''}" data-nav="${k}">${ic(i)}${l}</button>`).join('')}</nav>`;
     tilt(el); contar(el);
@@ -41,6 +42,20 @@ export function render(el, [slug, sec = 'inicio']) {
   const csv = (nombre, filas) => { const txt = filas.map(r => r.map(x => `"${String(x ?? '').replace(/"/g, '""')}"`).join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/csv' })); a.download = nombre + '.csv'; a.click(); toast('Archivo descargado', 'copy'); };
 
   /* ================= INICIO ================= */
+  /* primeros pasos: guía al dueño nuevo hasta tener su negocio listo */
+  function pasos(t) {
+    const P = [
+      ['Sube tu logo y portada', !!(t.logo || t.portada), 'ajustes'],
+      ['Revisa tus servicios y precios', S.services(tid).some(x => x.editado) || !t.modoInicio, 'catalogo'],
+      ['Agrega a tu equipo con su foto', S.staff(tid).some(m => m.foto), 'equipo'],
+      ['Comparte tu link en Instagram y WhatsApp', !!t.compartido, 'compartir'],
+      ['Recibe tu primera reserva', S.bookings(tid).some(b => b.origen === 'app'), ''],
+    ];
+    const hechos = P.filter(x => x[1]).length; if (hechos === P.length && !t.modoInicio) return '';
+    return `<div class="card glass in" style="margin-bottom:14px"><div class="row sp wrapx"><div><div class="xs mut">Primeros pasos · ${hechos} de ${P.length}</div><h3 style="margin-top:2px">${hechos === P.length ? '¡Tu negocio está listo! 🎉' : 'Deja tu negocio listo en 10 minutos'}</h3></div>${t.modoInicio ? `<button class="btn ghost sm" data-a="modo">Ver todo el sistema</button>` : ''}</div>
+      <div class="bar-c"><i style="width:${hechos / P.length * 100}%"></i></div>
+      <div class="grid g3 rsp" style="margin-top:12px;gap:8px">${P.map(([l, ok, k]) => `<${k ? `a href="${k === 'compartir' ? '#' : `#/s/${t.slug}/panel/${k}`}" ${k === 'compartir' ? 'data-a="compartir"' : ''}` : 'div'} class="row sm" style="gap:8px;text-decoration:none;padding:8px 10px;border-radius:12px;background:var(--surf);border:1px solid var(--line);${ok ? 'opacity:.6' : ''}"><span class="av r" style="width:24px;height:24px;font-size:11px;${ok ? '--c:var(--ok);color:#fff' : '--c:var(--card2)'}">${ok ? ic('check', 13) : ''}</span><span class="g" style="${ok ? 'text-decoration:line-through' : 'font-weight:600'}">${l}</span></${k ? 'a' : 'div'}>`).join('')}</div></div>`;
+  }
   function inicio() {
     const t = T(); const hoy = S.ymd(new Date()), man = S.ymd(S.addDays(new Date(), 1));
     const mh = S.metricas(tid, hoy, man); const mes = hoy.slice(0, 7) + '-01';
@@ -62,6 +77,7 @@ export function render(el, [slug, sec = 'inicio']) {
       S.waitlist(tid).length && [`🔔 ${S.waitlist(tid).length} en lista de espera`, 'Avísales si se libera un espacio', 'marketing'],
     ].filter(Boolean);
     layout(`${head(`${sal} ✦`, fechaL(new Date()) + ' · ' + esc(t.nombre), `<a class="btn ghost sm" href="#/s/${t.slug}" target="_blank">${ic('link', 16)} Mi app</a><button class="btn sm" data-a="compartir">${ic('qr', 16)} Compartir link</button>`)}
+      ${pasos(t)}
       ${alertas.length ? `<div class="scroll-x in" style="margin:0 -18px 12px;padding-bottom:4px">${alertas.map(([a, b, s]) => `<a class="card flat" href="#/s/${t.slug}/panel/${s}" style="min-width:240px;text-decoration:none;border-left:3px solid var(--brand)"><div class="b sm">${a}</div><div class="xs mut">${esc(b)}</div></a>`).join('')}</div>` : ''}
       <div class="grid g4 stagger">
         <div class="kpi tilt"><div class="l">Vendido hoy</div><div class="v pop" data-n="${mh.ingresos}" data-pre="$">0</div><div class="xs mut">${mh.completadas} servicios</div></div>
@@ -87,7 +103,7 @@ export function render(el, [slug, sec = 'inicio']) {
   function agenda() {
     const t = T(); const sucs = t.sucursales || []; const ms = S.staff(tid).filter(m => st.suc === 'todas' || (m.sucursal || 'principal') === st.suc); const f = S.parse(st.dia + 'T00:00');
     const hs = Object.values(t.horario).flat(); const a0 = Math.min(...hs.map(x => S.toMin(x[0])), 540), a1 = Math.max(...hs.map(x => S.toMin(x[1])), 1140);
-    const H = 40 / 30; const bs = S.bookings(tid).filter(b => b.inicio.startsWith(st.dia) && b.estado !== 'cancelada'); const filas = (a1 - a0) / 30;
+    const H = 64 / 30; const bs = S.bookings(tid).filter(b => b.inicio.startsWith(st.dia) && b.estado !== 'cancelada'); const filas = (a1 - a0) / 30;
     const cierre = (t.cierres || []).find(c => c.fecha === st.dia);
     layout(`${head('Agenda', `${fechaL(f)} · ${bs.length} citas${cierre ? ' · 🔒 ' + esc(cierre.motivo) : ''}`, `${sucs.length > 1 ? `<select data-sucsel style="width:auto;padding:9px 12px"><option value="todas">Todas las sucursales</option>${sucs.map(s => `<option value="${s.id}" ${st.suc === s.id ? 'selected' : ''}>${esc(s.nombre)}</option>`).join('')}</select>` : ''}<button class="ico" data-dd="-1">${ic('back')}</button><input type="date" value="${st.dia}" data-fecha style="width:auto;padding:9px 12px"><button class="ico" data-dd="1">${ic('next')}</button><button class="btn ghost sm" data-dd="0">Hoy</button><button class="btn sm" data-a="nueva">${ic('plus', 16)} Cita</button>`)}
       <div class="agenda in2" id="ag" style="grid-template-columns:58px repeat(${ms.length},minmax(150px,1fr))">
@@ -165,7 +181,7 @@ export function render(el, [slug, sec = 'inicio']) {
     const met = METODOS.map(k => [k, vs.filter(v => v.metodo === k).reduce((a, v) => a + v.cobrado, 0)]);
     const tot = vs.reduce((a, v) => a + v.cobrado, 0), sub = vs.reduce((a, v) => a + v.sub, 0), it = vs.reduce((a, v) => a + v.itbms, 0), pr = vs.reduce((a, v) => a + (v.propina || 0), 0);
     const gas = S.expenses(tid).filter(x => x.fecha === hoy);
-    layout(`${head('Caja', 'Cobros de hoy con ITBMS 7%', `<button class="btn ghost sm" data-a="venta">${ic('plus', 16)} Venta sin cita</button><button class="btn ghost sm" data-a="gasto">${ic('cash', 16)} Gasto</button><button class="btn sm" data-a="cierre">${ic('check', 16)} Cierre del día</button>`)}
+    layout(`${head('Caja', 'Cobros de hoy con ITBMS 7%', `<button class="btn ghost sm" data-a="canjear">${ic('qr', 16)} Canjear cupón</button><button class="btn ghost sm" data-a="venta">${ic('plus', 16)} Venta sin cita</button><button class="btn ghost sm" data-a="gasto">${ic('cash', 16)} Gasto</button><button class="btn sm" data-a="cierre">${ic('check', 16)} Cierre del día</button>`)}
       <div class="grid g4 stagger"><div class="kpi"><div class="l">Cobrado hoy</div><div class="v grad-t" data-n="${tot}" data-pre="$" data-dec="2">0</div></div>${met.slice(0, 3).map(([k, v]) => `<div class="kpi"><div class="l">${k}</div><div class="v" data-n="${v}" data-pre="$" data-dec="2">0</div></div>`).join('')}</div>
       <div class="grid g2 rsp" style="margin-top:12px"><div class="card flat in2"><h3>Por cobrar</h3>${por.length ? por.map(b => `<div class="li"><div style="width:58px" class="b sm">${h12(b.inicio.slice(11))}</div><div class="g"><div class="sm b">${esc(S.client(b.cid)?.nombre)}</div><div class="xs mut">${b.items.map(i => esc(S.service(i)?.nombre)).join(' + ')} · ${esc(S.member(b.staffId)?.nombre)}</div></div><button class="btn sm" data-cob="${b.id}">${S.money(b.total * 1.07 - (b.pago?.pagado || 0))}</button></div>`).join('') : '<div class="empty">Nada pendiente</div>'}</div>
       <div class="card flat in3"><h3>Movimientos de hoy</h3>${vs.length ? vs.slice().reverse().map(v => `<div class="li"><div class="g"><div class="sm b">${esc(v.concepto || S.client(v.cid)?.nombre || 'Venta')}</div><div class="xs mut">${v.fecha.slice(11)} · ${esc(v.metodo)}${v.staffId ? ' · ' + esc(S.member(v.staffId)?.nombre || '') : ''}${v.productos?.length ? ' · ' + v.productos.map(p => p.qty + '× ' + esc(p.nombre)).join(', ') : ''}${v.gift ? ' · regalo ' + S.money(v.gift) : ''}${v.paquete ? ' · paquete' : ''}</div></div><span class="b sm">${S.money(v.cobrado)}</span></div>`).join('') : '<div class="empty">Aún no hay cobros hoy</div>'}
@@ -307,12 +323,54 @@ export function render(el, [slug, sec = 'inicio']) {
   /* ================= OFERTAS Y REGALOS ================= */
   function promos() {
     const t = T(); let body = '';
+    if (st.ptab === 'vendibles') { const ps = S.promos(tid), vs = S.vouchers(tid); const ing = vs.reduce((a, v) => a + v.precio, 0), pend = vs.filter(v => v.estado === 'activo').length;
+      body = `${anuncio()}<div class="grid g4 stagger" style="margin-top:12px"><div class="kpi"><div class="l">Cupones vendidos</div><div class="v" data-n="${vs.length + ps.reduce((a, p) => a + Math.max(0, (p.vendidos || 0) - vs.filter(v => v.pid === p.id).length), 0)}">0</div></div><div class="kpi"><div class="l">Cobrado por promos</div><div class="v grad-t" data-n="${ps.reduce((a, p) => a + (p.vendidos || 0) * p.precio, 0)}" data-pre="$">0</div></div><div class="kpi"><div class="l">Por canjear</div><div class="v">${pend}</div></div><div class="kpi"><div class="l">Promos activas</div><div class="v">${ps.filter(S.promoDisponible).length}</div></div></div>
+        <p class="mut sm" style="margin:14px 0 10px">El cliente compra la promo en tu app, recibe un cupón con código y QR, y lo canjea al llegar. Cuando se acaban los cupos, se cierra sola.</p>
+        <div class="grid g3 rsp">${ps.map(p => { const q = p.cupos - (p.vendidos || 0); return `<div class="promo" data-pv="${p.id}" style="max-width:none;min-width:0"><div class="row sp"><span class="pill ${S.promoDisponible(p) ? 'ok' : ''}">${S.promoDisponible(p) ? 'Activa' : q <= 0 ? 'Agotada' : 'Pausada'}</span><span class="xs mut">${p.vence ? 'hasta ' + p.vence.slice(8) + '/' + p.vence.slice(5, 7) : ''}</span></div><div class="b" style="margin-top:8px">${esc(p.titulo)}</div><div class="row" style="gap:8px;align-items:baseline;margin-top:4px"><b style="font-size:22px">${S.money(p.precio)}</b><s class="xs dim">${S.money(p.normal)}</s></div><div class="bar-c"><i style="width:${Math.min(100, (p.vendidos || 0) / p.cupos * 100)}%"></i></div><div class="row sp xs" style="margin-top:6px"><span>${p.vendidos || 0} de ${p.cupos} vendidas</span><b>${S.money((p.vendidos || 0) * p.precio)}</b></div></div>`; }).join('')}<button class="card flat c" data-pv="" style="cursor:pointer;border-style:dashed;min-height:150px">${ic('plus', 26)}<div class="b" style="margin-top:6px">Nueva promo</div><div class="xs mut">Precio, cupos y fecha</div></button></div>
+        ${vs.length ? `<h3 style="margin:20px 0 10px">Últimos cupones</h3><div class="card flat pad0"><table class="t"><thead><tr><th>Código</th><th>Cliente</th><th>Promo</th><th>Estado</th></tr></thead><tbody>${vs.slice(-12).reverse().map(v => `<tr><td class="b">${v.codigo}</td><td>${esc(S.client(v.cid)?.nombre || '')}</td><td class="sm">${esc(S.promo(v.pid)?.titulo || '')}</td><td><span class="pill ${v.estado === 'activo' ? 'br' : 'ok'}">${v.estado === 'activo' ? 'Por canjear' : 'Canjeado'}</span></td></tr>`).join('')}</tbody></table></div>` : ''}`; }
     if (st.ptab === 'ofertas') body = `<p class="mut sm" style="margin-top:-6px">Se muestran arriba en tu app y se aplican solas al reservar.</p><div class="grid g2 rsp">${S.offers(tid).map(o => `<div class="offer" data-of="${o.id}" style="cursor:pointer;min-width:0"><span class="tag">${o.tipo === 'pct' ? '-' + o.valor + '%' : '-' + S.money(o.valor)}</span><div class="b" style="padding-right:60px">${esc(o.titulo)}</div><p class="sm mut" style="margin:6px 0">${esc(o.desc)}</p><div class="row sp"><span class="xs mut">${o.vence ? 'Vence ' + o.vence : 'Sin vencimiento'}</span><span class="pill ${o.activa && (!o.vence || o.vence >= S.ymd(new Date())) ? 'ok' : ''}">${o.activa && (!o.vence || o.vence >= S.ymd(new Date())) ? 'activa' : 'inactiva'}</span></div></div>`).join('')}<button class="card flat c" data-of="" style="cursor:pointer;border-style:dashed">${ic('plus')} Nueva oferta</button></div>`;
     if (st.ptab === 'cupones') body = `<div class="card flat pad0"><table class="t"><thead><tr><th>Código</th><th>Descuento</th><th>Usos</th><th class="hide-m">Vence</th></tr></thead><tbody>${S.coupons(tid).map(c => `<tr data-cu="${c.id}" style="cursor:pointer"><td class="b">${esc(c.codigo)}<div class="xs mut">${esc(c.nota || '')}</div></td><td>${c.tipo === 'pct' ? c.valor + '%' : S.money(c.valor)}</td><td>${c.usos || 0}${c.max ? '/' + c.max : ''}</td><td class="hide-m mut">${c.vence || '—'}</td></tr>`).join('')}</tbody></table></div>
       <div class="card flat" style="margin-top:12px"><div class="row sp"><div><div class="b">💌 Programa de referidos</div><div class="xs mut">Cada cliente tiene su código: su amigo recibe ${t.referidos?.pct || 10}% y él un sello.</div></div><div class="switch ${t.referidos?.activo ? 'on' : ''}" data-a="refsw"></div></div></div>`;
     if (st.ptab === 'regalos') { const gs = S.giftcards(tid); body = `<div class="grid g3 stagger"><div class="kpi"><div class="l">Vendidas</div><div class="v">${gs.length}</div></div><div class="kpi"><div class="l">Valor vendido</div><div class="v">${S.money(gs.reduce((a, g) => a + g.monto, 0))}</div></div><div class="kpi"><div class="l">Saldo pendiente</div><div class="v">${S.money(gs.reduce((a, g) => a + g.saldo, 0))}</div></div></div>
       <div class="card flat pad0" style="margin-top:12px"><table class="t"><thead><tr><th>Código</th><th>Para</th><th>Saldo</th><th class="hide-m">De</th></tr></thead><tbody>${gs.slice().reverse().map(g => `<tr><td class="b">${esc(g.codigo)}</td><td>${esc(g.para)}</td><td>${S.money(g.saldo)} <span class="xs mut">/ ${S.money(g.monto)}</span></td><td class="hide-m mut">${esc(g.de || '')}</td></tr>`).join('')}</tbody></table></div>`; }
-    layout(`${head('Ofertas y regalos', '', st.ptab === 'cupones' ? `<button class="btn sm" data-cu="">${ic('plus', 16)} Cupón</button>` : st.ptab === 'regalos' ? `<button class="btn sm" data-a="vregalo">${ic('gift', 16)} Vender tarjeta</button>` : '')}${tabs([['ofertas', 'Ofertas'], ['cupones', 'Cupones y referidos'], ['regalos', 'Tarjetas de regalo']], st.ptab, 'ptab')}${body}`);
+    layout(`${head('Ofertas y regalos', '', st.ptab === 'vendibles' ? `<button class="btn ghost sm" data-a="canjear">${ic('qr', 16)} Canjear cupón</button><button class="btn sm" data-pv="">${ic('plus', 16)} Promo</button>` : st.ptab === 'cupones' ? `<button class="btn sm" data-cu="">${ic('plus', 16)} Cupón</button>` : st.ptab === 'regalos' ? `<button class="btn sm" data-a="vregalo">${ic('gift', 16)} Vender tarjeta</button>` : '')}${tabs([['vendibles', 'Promos con cupos'], ['ofertas', 'Ofertas'], ['cupones', 'Cupones y referidos'], ['regalos', 'Tarjetas de regalo']], st.ptab, 'ptab')}${body}`);
+  }
+  function anuncio() {
+    const t = T(), on = S.destacado(t);
+    return `<div class="card glass"><div class="row wrapx"><div class="ico" style="background:var(--grad);color:var(--ink);border:0;width:48px;height:48px">${ic('bolt', 22)}</div><div class="g" style="min-width:200px"><div class="b">${on ? 'Tu negocio está destacado en Glow' : 'Sal de primero en Glow'}</div><div class="xs mut">${on ? 'Apareces arriba en "Cerca de ti" con la etiqueta Destacado hasta el ' + t.destacado.hasta.slice(8) + '/' + t.destacado.hasta.slice(5, 7) + '.' : 'Los clientes cerca de ti te ven antes que a los demás, con tus promos y estrellas.'}</div></div><button class="btn ${on ? 'ghost' : ''} sm" data-a="destacar">${on ? 'Extender' : 'Anunciarme'}</button></div></div>`;
+  }
+  const PLU = { barberia: 'barberías', unas: 'negocios de uñas', salon: 'salones', spa: 'spas', estetica: 'estéticas' };
+  function destacar() {
+    const t = T(); const P = [['Semana', 7, 15], ['Quincena', 15, 25], ['Mes', 30, 45]]; let sel = 0;
+    const otros = S.destacadosDe(t.tipo).filter(x => x.id !== t.id);
+    if (otros.length >= S.CUPOS_DEST && !S.destacado(t)) { const libre = otros.map(x => x.destacado.hasta).sort()[0]; return sheet(`<div class="c"><div style="font-size:40px">⏳</div><h2>Cupos llenos esta semana</h2><p class="mut">Solo hay ${S.CUPOS_DEST} lugares destacados por semana para ${PLU[t.tipo] || 'tu tipo de negocio'}, para que los clientes no vean solo anuncios. El próximo cupo se libera el ${libre.slice(8)}/${libre.slice(5, 7)}.</p><button class="btn w" data-x="1">Entendido</button></div>`), $('.sheet [data-x]').onclick = closeSheet; }
+    sheet(`<h2>Anúnciate en Glow</h2><p class="mut sm">Sales de primero cuando un cliente busca negocios cerca. Siempre con la etiqueta <b>Destacado</b>, para que la gente confíe.</p><div class="pill br" style="margin-top:8px">Quedan ${Math.max(0, S.CUPOS_DEST - otros.length - (S.destacado(t) ? 1 : 0))} de ${S.CUPOS_DEST} cupos esta semana para ${PLU[t.tipo] || 'tu tipo de negocio'}</div>
+      <div class="col" style="margin:14px 0">${P.map(([n, d, pr], i) => `<button class="svc ${i === 0 ? 'on' : ''}" data-pl="${i}"><div class="g"><div class="b">${n}</div><div class="xs mut">${d} días arriba en tu zona</div></div><b>${S.money(pr)}</b><div class="chk">${i === 0 ? ic('check', 15) : ''}</div></button>`).join('')}</div>
+      <div class="card flat sm"><b>Qué incluye:</b> primer lugar en "Cerca de ti", tarjeta grande con tu portada, tus promos con cupos visibles y reporte de cuántos te vieron y reservaron.</div>
+      <button class="btn w" id="ds-ok" style="margin-top:14px">Activar</button><p class="xs dim c">Demo: el pago es simulado.</p>`);
+    $$('.sheet [data-pl]').forEach(x => x.onclick = () => { sel = +x.dataset.pl; $$('.sheet [data-pl]').forEach(y => { y.classList.toggle('on', y === x); y.querySelector('.chk').innerHTML = y === x ? ic('check', 15) : ''; }); });
+    $('#ds-ok').onclick = () => { const base = S.destacado(t) ? S.parse(t.destacado.hasta + 'T12:00') : new Date(); S.guardar('tenants', { id: tid, destacado: { hasta: S.ymd(S.addDays(base, P[sel][1])), plan: P[sel][0] } }); closeSheet(); confetti(); toast('¡Listo! Ya sales de primero', 'bolt'); pintar(); };
+  }
+  function editPromo(id) {
+    const sv = S.services(tid); const p = id ? S.promo(id) : { id: S.uid('p'), tid, titulo: '', desc: '', servicios: [sv[0]?.id], normal: sv[0]?.precio || 0, precio: Math.round((sv[0]?.precio || 0) * .75), cupos: 30, vendidos: 0, vence: S.ymd(S.addDays(new Date(), 15)), validez: 60, activa: true, creado: S.iso(new Date()) };
+    sheet(`<h2>${id ? 'Editar' : 'Nueva'} promo con cupos</h2><p class="mut sm">Se vende en tu app. Cada compra genera un cupón con código.</p>
+      <div class="field"><label>Servicio</label><select id="pv-s">${sv.map(x => `<option value="${x.id}" ${p.servicios[0] === x.id ? 'selected' : ''}>${esc(x.nombre)} · ${S.money(x.precio)}</option>`).join('')}</select></div>
+      <div class="field"><label>Nombre de la promo</label><input id="pv-t" value="${esc(p.titulo)}" placeholder="Ej.: Corte + barba de lanzamiento"></div>
+      <div class="field"><label>Descripción</label><input id="pv-d" value="${esc(p.desc)}" placeholder="Qué incluye y condiciones"></div>
+      <div class="grid g3"><div class="field"><label>Precio normal</label><input id="pv-n" type="number" value="${p.normal}"></div><div class="field"><label>Precio promo</label><input id="pv-p" type="number" value="${p.precio}"></div><div class="field"><label>Cupos</label><input id="pv-c" type="number" value="${p.cupos}"></div></div>
+      <div class="grid g2"><div class="field"><label>Se vende hasta</label><input id="pv-v" type="date" value="${p.vence}"></div><div class="field"><label>Días para usarlo</label><input id="pv-u" type="number" value="${p.validez}"></div></div>
+      <div class="row sp" style="margin-bottom:14px"><span class="sm">Activa</span><div class="switch ${p.activa ? 'on' : ''}" id="pv-a"></div></div>
+      <div class="row">${id ? `<button class="btn danger" id="pv-del">${ic('trash', 16)}</button>` : ''}<button class="btn g" id="pv-ok">Guardar</button></div>`);
+    $('#pv-a').onclick = e => e.currentTarget.classList.toggle('on');
+    $('#pv-s').onchange = () => { const x = S.service($('#pv-s').value); $('#pv-n').value = x.precio; $('#pv-p').value = Math.round(x.precio * .75); if (!$('#pv-t').value) $('#pv-t').value = x.nombre; };
+    $('#pv-ok').onclick = () => { const sid = $('#pv-s').value, n = +$('#pv-n').value, pr = +$('#pv-p').value, c = Math.max(1, +$('#pv-c').value || 1);
+      if (!(pr > 0) || pr >= n) return toast('El precio promo debe ser menor al normal', 'x'); if (c < (p.vendidos || 0)) return toast('Ya vendiste ' + p.vendidos + ', los cupos no pueden ser menos', 'x');
+      S.guardar('promos', { ...p, servicios: [sid], titulo: $('#pv-t').value.trim() || S.service(sid).nombre, desc: $('#pv-d').value.trim(), normal: n, precio: pr, cupos: c, vence: $('#pv-v').value, validez: +$('#pv-u').value || 60, activa: $('#pv-a').classList.contains('on') }); closeSheet(); toast('Promo guardada', 'gift'); };
+    if (id) $('#pv-del').onclick = () => { S.guardar('promos', { id, borrado: true }); closeSheet(); };
+  }
+  function canjear() {
+    sheet(`<h2>Canjear cupón</h2><p class="mut sm">Escribe el código que muestra el cliente (PROMO-…).</p><div class="field"><input id="cj-c" autofocus placeholder="PROMO-XXXXX" style="text-transform:uppercase;font-size:20px;letter-spacing:.06em"></div><button class="btn w" id="cj-ok">Canjear</button>`);
+    $('#cj-ok').onclick = () => { try { const v = S.canjearVoucher(tid, $('#cj-c').value); closeSheet(); confetti(); toast(`Canjeado: ${S.promo(v.pid)?.titulo} · ${S.client(v.cid)?.nombre}`, 'check'); } catch (e) { toast(e.message, 'x'); } };
   }
   function editOferta(id) {
     const o = id ? S.offers(tid).find(x => x.id === id) : { id: S.uid('f'), tid, titulo: '', desc: '', tipo: 'pct', valor: 15, servicios: [], vence: S.ymd(S.addDays(new Date(), 14)), activa: true };
@@ -353,7 +411,7 @@ export function render(el, [slug, sec = 'inicio']) {
       ['📉', `Llena tu día flojo${flojo ? ': ' + DIAS[flojo[0].getDay()] + ' ' + flojo[0].getDate() : ''}`, flojo ? `Ese día va al ${Math.round(flojo[1] * 100)}% de ocupación.` : 'Tu semana está llena.', S.clients(tid).filter(c => ultMap[c.id]).slice(0, 25), c => `Hola ${c.nombre.split(' ')[0]} ✦ Tenemos espacios el ${flojo ? fechaL(flojo[0]) : 'esta semana'} con 15% de descuento. Aparta el tuyo 👉 ${link}`],
       ['⭐', 'Pide reseñas en Google', `${res.length} clientes atendidos en los últimos 3 días.`, res, c => `Hola ${c.nombre.split(' ')[0]}, gracias por venir a ${t.nombre} 💛 ¿Nos regalas 1 minuto para dejar tu reseña en Google? Nos ayuda muchísimo 🙏`],
     ];
-    layout(`${head('Marketing', 'Campañas listas para enviar por WhatsApp, una por una, para cuidar tu número.')}
+    layout(`${head('Marketing', 'Campañas listas para enviar por WhatsApp, una por una, para cuidar tu número.')}${anuncio()}<div style="height:12px"></div>
       <div class="grid g2 rsp stagger">${camp.map(([e, ti, d, l], i) => `<div class="card tilt flat"><div class="pop"><div style="font-size:30px">${e}</div><h3 style="margin:8px 0 4px">${ti}</h3><p class="mut sm" style="margin:0 0 14px">${d}</p><button class="btn sm" data-camp="${i}" ${l.length ? '' : 'disabled'}>${ic('wa', 16)} Preparar ${l.length} mensajes</button></div></div>`).join('')}
         <div class="card flat"><div style="font-size:30px">🖨️</div><h3 style="margin:8px 0 4px">QR y link para tu local</h3><p class="mut sm" style="margin:0 0 14px">Para el mostrador, el espejo, la bio de Instagram y tu WhatsApp Business.</p><div class="row wrapx"><button class="btn ghost sm" data-a="copiar">${ic('copy', 15)} Copiar link</button><button class="btn sm" data-a="compartir">${ic('qr', 15)} Ver QR</button></div></div></div>
       <div class="card flat in3" style="margin-top:12px"><h3>${ic('bell', 18)} Lista de espera</h3>${S.waitlist(tid).length ? S.waitlist(tid).slice(-8).reverse().map(w => `<div class="li"><div class="g"><div class="sm b">${esc(w.nombre)}</div><div class="xs mut">Quiere ${fechaL(S.parse(w.fecha + 'T00:00'))} · ${w.items.map(i => esc(S.service(i)?.nombre)).join(' + ')}</div></div><a class="btn ghost sm" target="_blank" href="${wa(w.tel, `Hola ${w.nombre}, se liberó un espacio en ${t.nombre} 🎉 ¿Lo apartamos? 👉 ${link}`)}">${ic('wa', 15)} Avisar</a></div>`).join('') : '<p class="mut sm">Cuando un día esté lleno, tus clientes pueden anotarse aquí.</p>'}</div>`);
@@ -437,6 +495,7 @@ export function render(el, [slug, sec = 'inicio']) {
   function ajustes() {
     const t = T();
     layout(`${head('Ajustes', 'Tu marca, fotos, horario, sucursales y reglas. Todo se ve al instante en tu app.', `<a class="btn ghost sm" href="#/s/${t.slug}" target="_blank">${ic('link', 16)} Ver cómo queda</a><button class="btn sm" data-a="guardar">${ic('check', 18)} Guardar</button>`)}
+      <div class="card flat in" style="margin-bottom:12px"><div class="row sp wrapx"><div><h3>Estilo de tu app</h3><p class="xs mut" style="margin:2px 0 10px">Así la ven tus clientes y la pantalla TV. Tu panel no cambia.</p></div><a class="btn ghost sm" href="#/s/${t.slug}" target="_blank">Ver en vivo</a></div><div class="estilos est5">${pickerEstilos(t.estilo || 'claro', t.nombre).replace('<div class="estilos">', '').replace(/<\/div>$/, '')}</div></div>
       <div class="grid g2 rsp">
       <div class="card flat in"><h3>Fotos</h3>
         <label style="margin-top:12px">Portada</label><label style="display:block;margin:0;cursor:pointer"><div id="a-por" style="height:140px;border-radius:18px;border:1.5px dashed var(--line2);display:grid;place-items:center;${t.portada ? `background:url(${t.portada}) center/cover` : 'background:var(--soft)'}">${t.portada ? '' : `<span class="mut sm">${ic('plus')} Subir foto de portada</span>`}</div><input type="file" accept="image/*" id="a-pf" hidden></label>
@@ -490,8 +549,8 @@ export function render(el, [slug, sec = 'inicio']) {
   function copiar() { const link = location.href.split('#')[0] + '#/s/' + T().slug; navigator.clipboard?.writeText(link).then(() => toast('Link copiado'), () => toast(link, 'link')); }
   function mas() {
     const t = T();
-    sheet(`<h2>Más</h2><div class="grid g3" style="margin-top:14px">${SECC.filter(([k]) => !['inicio', 'agenda', 'caja', 'clientes'].includes(k)).map(([k, i, l]) => `<a class="card flat c" href="#/s/${t.slug}/panel/${k}" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic(i)}</div><div class="xs b">${l}</div></a>`).join('')}
-      <a class="card flat c" href="#/s/${t.slug}" target="_blank" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('link')}</div><div class="xs b">Ver mi app</div></a><a class="card flat c" href="#/s/${t.slug}/tv" target="_blank" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('play')}</div><div class="xs b">Pantalla TV</div></a><a class="card flat c" href="#/s/${t.slug}/equipo" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('scissors')}</div><div class="xs b">App del equipo</div></a>
+    sheet(`<h2>Más</h2><div class="grid g3" style="margin-top:14px">${SECC.filter(([k]) => !['inicio', 'agenda', 'caja', 'clientes'].includes(k) && (!T().modoInicio || BASICO.includes(k))).map(([k, i, l]) => `<a class="card flat c" href="#/s/${t.slug}/panel/${k}" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic(i)}</div><div class="xs b">${l}</div></a>`).join('')}
+      <a class="card flat c" href="#/s/${t.slug}" target="_blank" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('link')}</div><div class="xs b">Ver mi app</div></a><a class="card flat c" href="#/s/${t.slug}/recepcion" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('bell')}</div><div class="xs b">Recepción</div></a><a class="card flat c" href="#/s/${t.slug}/accesos" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('qr')}</div><div class="xs b">Accesos y QR</div></a><a class="card flat c" href="#/s/${t.slug}/tv" target="_blank" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('play')}</div><div class="xs b">Pantalla TV</div></a><a class="card flat c" href="#/s/${t.slug}/equipo" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('scissors')}</div><div class="xs b">App del equipo</div></a>
       <a class="card flat c" href="#/guia" style="text-decoration:none;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('book')}</div><div class="xs b">Guía</div></a><button class="card flat c" data-a="salir" style="cursor:pointer;padding:14px 8px"><div class="ico" style="margin:0 auto 8px">${ic('logout')}</div><div class="xs b">Salir</div></button></div>`);
     $('.sheet [data-a=salir]').onclick = () => { sessionStorage.removeItem(key); closeSheet(); location.hash = '#/'; };
     $$('.sheet a').forEach(a => a.addEventListener('click', closeSheet));
@@ -504,8 +563,9 @@ export function render(el, [slug, sec = 'inicio']) {
   const vistas = { inicio, agenda, fila, caja, clientes, catalogo, promos, marketing, mensajes, reportes, equipo, ajustes };
   function pintar() { (vistas[sec] || inicio)(); el.onclick = onClick; }
   function onClick(e) {
-    const x = e.target.closest('[data-a],[data-nav],[data-dd],[data-b],[data-slot],[data-cob],[data-c],[data-seg],[data-s],[data-m],[data-tab],[data-ptab],[data-per],[data-xe],[data-p],[data-k],[data-mb],[data-of],[data-cu],[data-qok]'); if (!x) return;
+    const x = e.target.closest('[data-est],[data-a],[data-nav],[data-dd],[data-b],[data-slot],[data-cob],[data-c],[data-seg],[data-s],[data-m],[data-tab],[data-ptab],[data-per],[data-xe],[data-p],[data-k],[data-mb],[data-of],[data-cu],[data-qok],[data-pv]'); if (!x) return;
     if (x.closest('.ev[data-b]')) return;
+    if (x.dataset.est) { S.guardar('tenants', { id: tid, estilo: x.dataset.est }); toast('Estilo: ' + ESTILOS[x.dataset.est].n + ' ✦', 'spark'); return ajustes(); }
     vibrar(8); const d = x.dataset;
     if (d.nav) { if (d.nav === 'mas') return mas(); location.hash = `#/s/${T().slug}/panel/${d.nav}`; return; }
     if (d.dd !== undefined) { st.dia = d.dd === '0' ? S.ymd(new Date()) : S.ymd(S.addDays(S.parse(st.dia + 'T00:00'), +d.dd)); return agenda(); }
@@ -517,12 +577,15 @@ export function render(el, [slug, sec = 'inicio']) {
     if (d.seg) { st.seg = d.seg; return clientes(); }
     if (d.s) return editSvc(d.s); if (d.xe !== undefined) return editExtra(d.xe || null); if (d.p) return editProd(d.p);
     if (d.k !== undefined && sec === 'catalogo') return editPaq(d.k || null); if (d.mb !== undefined) return editMem(d.mb || null);
+    if (d.pv !== undefined) return editPromo(d.pv || null);
     if (d.of !== undefined) return editOferta(d.of || null); if (d.cu !== undefined) return editCupon(d.cu || null);
     if (d.m) return editMem2(d.m);
     if (d.qok) { const q = S.queue(tid).find(z => z.id === d.qok); S.guardar('queue', { id: q.id, estado: 'listo' }); const c = S.upsertClient(tid, { nombre: q.nombre, tel: q.tel || '' }); const ahora = new Date();
       const b = S.saveBooking({ id: S.uid('b'), tid, cid: c.id, items: [q.servicio], staffId: q.staffId, inicio: S.iso(ahora), dur: S.service(q.servicio)?.dur || 30, total: S.precio(q.servicio, q.staffId), estado: 'en curso', origen: 'sin cita', nota: 'Fila #' + q.numero, pago: { deposito: 0, pagado: 0, metodo: '' }, creado: S.iso(ahora), codigo: 'F-' + q.numero, avisos: {} }); return cobrar(b.id); }
     const a = d.a;
-    if (a === 'compartir') compartir(); if (a === 'copiar') copiar(); if (a === 'nueva') nueva(); if (a === 'svc') editSvc(); if (a === 'prod') editProd(); if (a === 'mem') editMem2(); if (a === 'guardar') guardarAjustes();
+    if (a === 'compartir') { e.preventDefault(); S.guardar('tenants', { id: tid, compartido: true }); compartir(); } if (a === 'copiar') copiar(); if (a === 'nueva') nueva(); if (a === 'svc') editSvc(); if (a === 'prod') editProd(); if (a === 'mem') editMem2(); if (a === 'guardar') guardarAjustes();
+    if (a === 'modo') { e.preventDefault(); S.guardar('tenants', { id: tid, modoInicio: !T().modoInicio }); toast(T().modoInicio ? 'Modo inicio: solo lo esencial' : 'Ahora ves todo el sistema', 'spark'); return pintar(); }
+    if (a === 'canjear') canjear(); if (a === 'destacar') destacar();
     if (a === 'ncli') editCliente(); if (a === 'importar') importar(); if (a === 'venta') cobrar(null); if (a === 'gasto') gasto();
     if (a === 'exportar') csv('clientes-' + T().slug, [['Nombre', 'WhatsApp', 'Correo', 'Cumpleaños', 'Sellos', 'Membresía', 'Etiquetas', 'Notas'], ...S.clients(tid).map(c => [c.nombre, c.tel, c.email, c.cumple, c.sellos, c.membresia || '', c.etiquetas || '', c.notas || ''])]);
     if (a === 'xls') csv('ventas-' + T().slug, [['Fecha', 'Cliente', 'Profesional', 'Concepto', 'Subtotal', 'ITBMS', 'Propina', 'Total', 'Método'], ...S.sales(tid).map(v => [v.fecha.replace('T', ' '), S.client(v.cid)?.nombre || '', S.member(v.staffId)?.nombre || '', v.concepto || (S.booking(v.bid)?.items || []).map(i => S.service(i)?.nombre).join(' + '), v.sub, v.itbms, v.propina || 0, v.total, v.metodo])]);

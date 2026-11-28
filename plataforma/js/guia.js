@@ -22,6 +22,12 @@ const G = {
     ['Bloquean tiempo', 'Almuerzo o diligencias: ese rango deja de aparecer para reservar.', 'clock'],
     ['Sus números', 'Servicios del mes, lo que vendieron, su comisión y propinas. Y sus clientes fieles para escribirles.', 'chart'],
   ] },
+  recepcion: { t: 'Recepción', i: 'bell', d: 'El mostrador del local, en una tablet o computadora.', p: [
+    ['Llegadas en vivo', 'Ahora, próximas y listas. Un toque en «Llegó» avisa al profesional; luego «A la silla» y «Cobrar». Marca en rojo a quien va tarde.', 'check'],
+    ['Equipo ahora', 'Quién está libre, quién atiende (y cuándo termina) y quién está por empezar.', 'users'],
+    ['Fila sin cita y huecos libres', 'Da turno con número a quien llega sin cita y asígnalo. Los huecos libres de hoy, listos para agendar a quien llama.', 'clock'],
+    ['Cobros y cupones', 'Cobra con propina y método de pago; canjea los cupones de promos que compraron en la app.', 'qr'],
+  ] },
   dueno: { t: 'Tú, el dueño', i: 'chart', d: 'Todo tu negocio en un panel, en el celular o la computadora.', p: [
     ['Inicio', 'Lo vendido hoy y en el mes, citas, plantones, ocupación, servicios estrella, ranking del equipo y las reservas nuevas en vivo.', 'home'],
     ['Agenda', 'Todas las citas por profesional (y por sucursal). Arrastra una cita para moverla, toca un espacio vacío para crear una, toca una cita para cobrar, recordar o cancelar.', 'cal'],
@@ -30,6 +36,9 @@ const G = {
     ['Marketing', 'Campañas listas: «te toca tu corte», recuperar a los que no vuelven, cumpleaños, llenar el día flojo y pedir reseñas en Google. Se envían por WhatsApp una por una (sin spam).', 'spark'],
     ['Fila sin cita y pantalla TV', 'Ve quién espera, asígnalo a un profesional y cóbralo. Pon la Pantalla TV en recepción: muestra próximas citas, la fila y el QR para reservar.', 'play'],
     ['Servicios y productos', 'Tus servicios con tus precios (y precio distinto por profesional), extras, productos con inventario, paquetes prepago y membresías mensuales.', 'scissors'],
+    ['Promos con cupos y anuncios', 'Crea una promo con precio, cupos y fecha: tus clientes la compran en la app y reciben un cupón con código y QR. Se cierra sola al agotarse. Y anúnciate para salir de primero en Glow (2 lugares por semana por tipo de negocio).', 'bolt'],
+    ['Estilo de tu app', 'Elige entre Glow claro, Elegante, Natural, Vibrante o Clásico. Tus clientes y la TV lo ven al instante; con tus colores, logo y portada.', 'spark'],
+    ['Modo inicio', 'Si recién empiezas, ves solo lo esencial y una lista de primeros pasos. Luego abres todo el sistema.', 'sun'],
     ['Ofertas y regalos', 'Ofertas con vencimiento que se aplican solas, cupones, programa de referidos y tarjetas de regalo con saldo.', 'gift'],
     ['Mensajes y reportes', 'Mira cada confirmación y recordatorio que se envió. Reportes por periodo: ventas, gastos, ganancia, comisiones, servicios, canales y métodos de pago; exporta a Excel.', 'chart'],
     ['Equipo y ajustes', 'Fotos y galería de cada profesional, PIN, comisión y sucursal. Portada, logo y galería del local, horario, feriados, sucursales, depósito, política, fila y fidelidad.', 'gear'],

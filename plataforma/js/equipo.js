@@ -1,5 +1,5 @@
 import * as S from './store.js';
-import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, toast, sheet, closeSheet, tilt, setBrand, vibrar, contar, wa, avatar, estrellas } from './ui.js';
+import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, toast, sheet, closeSheet, tilt, setBrand, vibrar, contar, wa, avatar, estrellas, leerImagen } from './ui.js';
 
 export function render(el, [slug]) {
   const t = S.tenant(slug); if (!t) { location.hash = '#/'; return; }
@@ -15,7 +15,7 @@ export function render(el, [slug]) {
         <div class="grid g3" style="max-width:280px;margin:0 auto">${[1, 2, 3, 4, 5, 6, 7, 8, 9, '', 0, '⌫'].map(k => k === '' ? '<span></span>' : `<button class="btn ghost" style="min-height:64px;font-size:22px" data-k="${k}">${k}</button>`).join('')}</div>
         <p class="xs dim" style="margin-top:16px">Demo: el PIN de ${esc(S.member(sel).nombre)} es ${S.member(sel).pin}</p><button class="btn ghost sm" data-back>Cambiar de persona</button></div>`
       : `<div class="grid g2 stagger" style="margin-top:24px">${ms.map(m => `<button class="card tilt c" style="cursor:pointer" data-m="${m.id}">${avatar(m, 'lg r pop', 'margin:0 auto')}<div class="b" style="margin-top:10px">${esc(m.nombre)}</div><div class="xs mut">${esc(m.rol)}</div></button>`).join('')}</div>`}
-      <p class="c" style="margin-top:24px"><a class="mut sm" href="#/s/${t.slug}/panel">Soy el dueño → panel</a></p></main>`;
+      <p class="c" style="margin-top:24px"><a class="mut sm" href="#/s/${t.slug}/recepcion">Recepción</a> · <a class="mut sm" href="#/s/${t.slug}/panel">Soy el dueño → panel</a></p></main>`;
     tilt(el);
     el.onclick = e => {
       const m = e.target.closest('[data-m]'); if (m) return login(m.dataset.m);
@@ -43,12 +43,14 @@ export function render(el, [slug]) {
         <div class="row"><button class="ico" data-d="-1">${ic('back')}</button><button class="ico" data-d="1">${ic('next')}</button></div></div>
         ${sig && dia === 0 ? `<div class="card glass tilt in2" style="margin-top:10px"><div class="pop"><div class="row sp"><span class="pill br">${sig.estado === 'en curso' ? 'En curso' : mins > 0 ? `En ${mins >= 60 ? Math.floor(mins / 60) + ' h ' : ''}${mins % 60} min` : 'Ahora'}</span><span class="b">${h12(sig.inicio.slice(11))}</span></div>
           <h2 style="margin:12px 0 2px">${esc(S.client(sig.cid)?.nombre)}</h2><div class="mut sm">${sig.items.map(i => esc(S.service(i)?.nombre)).join(' + ')} · ${durL(sig.dur)}</div>
-          ${S.client(sig.cid)?.notas ? `<div class="sm" style="margin-top:8px">📝 ${esc(S.client(sig.cid).notas)}</div>` : ''}
-          <div class="row" style="margin-top:14px">${acciones(sig)}</div></div></div>` : ''}
+          ${resumenCli(sig.cid, m)}
+          <div class="row" style="margin-top:14px">${acciones(sig)}<button class="btn ghost sm" data-fc="${sig.cid}">Ficha</button></div></div></div>` : ''}
+        ${dia === 0 ? (() => { const hechos = mias.filter(b => b.estado === 'completada'); const hoyV = S.sales(t.id).filter(v => v.staffId === m.id && v.fecha.startsWith(d)); const gan = hoyV.reduce((a, v) => a + v.sub, 0) * m.comision / 100 + hoyV.reduce((a, v) => a + (v.propina || 0), 0); const faltan = mias.filter(b => ['confirmada', 'llegó', 'en curso'].includes(b.estado)).length;
+          return `<div class="grid g3 eq-kpi in3" style="margin-top:14px"><div class="kpi"><div class="l">Atendidos</div><div class="v">${hechos.length}</div></div><div class="kpi"><div class="l">Te faltan</div><div class="v">${faltan}</div></div><div class="kpi"><div class="l">Ganaste hoy</div><div class="v grad-t">${S.money(gan)}</div></div></div>`; })() : ''}
         <div class="row sp" style="margin:22px 0 8px"><h3>${mias.length} cita${mias.length === 1 ? '' : 's'}</h3><button class="btn ghost sm" data-a="bloq">${ic('lock', 15)} Bloquear tiempo</button></div>
         <div class="col stagger">${mias.length ? mias.map(b => `<div class="card flat" style="padding:14px;border-left:3px solid ${b.estado === 'completada' ? 'var(--ok)' : b.estado === 'no-show' ? 'var(--bad)' : 'var(--brand)'}">
-          <div class="row"><div style="width:64px"><div class="b">${h12(b.inicio.slice(11))}</div><div class="xs mut">${durL(b.dur)}</div></div><div class="g"><div class="b">${esc(S.client(b.cid)?.nombre)}</div><div class="xs mut">${b.items.map(i => esc(S.service(i)?.nombre)).join(' + ')}</div></div>${pill(b.estado)}</div>
-          ${['confirmada', 'llegó', 'en curso'].includes(b.estado) ? `<div class="row" style="margin-top:10px">${acciones(b)}</div>` : ''}</div>`).join('') : `<div class="empty">${ic('sun', 36)}<p>Día libre de citas.</p></div>`}</div>
+          <div class="row" data-fc="${b.cid}" style="cursor:pointer"><div style="width:74px;white-space:nowrap"><div class="b">${h12(b.inicio.slice(11))}</div><div class="xs mut">${durL(b.dur)}</div></div><div class="g"><div class="b">${esc(S.client(b.cid)?.nombre)}</div><div class="xs mut">${b.items.map(i => esc(S.service(i)?.nombre)).join(' + ')}</div></div>${pill(b.estado)}</div>
+          ${['llegó', 'en curso'].includes(b.estado) || (b.estado === 'confirmada' && dia === 0 && Math.abs(S.parse(b.inicio) - new Date()) < 3600000) ? `<div class="row" style="margin-top:10px">${acciones(b)}</div>` : ''}</div>`).join('') : `<div class="empty">${ic('sun', 36)}<p>Día libre de citas.</p></div>`}</div>
         ${(m.bloqueos || []).filter(x => x.fecha === d).map(x => `<div class="card flat sm" style="margin-top:8px">🔒 ${h12(x.desde)} – ${h12(x.hasta)} · ${esc(x.motivo || 'Bloqueado')} <button class="btn ghost sm" data-unb="${x.desde}">Quitar</button></div>`).join('')}`;
     } else if (vista === 'num') {
       const comp = vs.length; body = `<h2 class="in" style="margin:18px 0 14px">Tus números de ${['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][new Date().getMonth()]}</h2>
@@ -67,18 +69,38 @@ export function render(el, [slug]) {
         <button class="btn w" data-a="walkin">${ic('plus', 18)} Empezar ahora</button>`;
     }
     el.innerHTML = `<header class="top"><div class="wrap in-top">${avatar(m, 'r', 'width:38px;height:38px;font-size:13px')}<div class="g"><div class="b">${esc(m.nombre)}</div><div class="xs mut">${esc(t.nombre)}</div></div><select data-est style="width:auto;padding:8px 10px;font-size:13px">${['disponible', 'ocupado', 'almorzando', 'fuera'].map(x => `<option ${m.estadoFila === x ? 'selected' : ''}>${x}</option>`).join('')}</select><button class="ico" data-a="salir" title="Salir">${ic('logout')}</button></div></header>
-      <main class="wrap pb">${body}</main>
+      <main class="wrap pb eq-main">${body}</main>
       <nav class="tabbar">${tab('hoy', 'sun', 'Mi día')}${tab('sem', 'cal', '14 días')}${tab('nueva', 'plus', 'Sin cita')}${tab('num', 'chart', 'Números')}</nav>`;
     tilt(el); contar(el);
     $('[data-est]', el).onchange = e => { S.saveStaff({ id: m.id, estadoFila: e.target.value }); toast('Estado: ' + e.target.value); };
     el.onclick = onClick;
+  }
+  function resumenCli(cid, m) {
+    const c = S.client(cid); if (!c) return ''; const hist = S.bookings(t.id).filter(b => b.cid === cid && b.estado === 'completada').sort((a, b) => b.inicio.localeCompare(a.inicio));
+    const ult = hist[0]; const conmigo = hist.filter(b => b.staffId === m.id).length; const cumple = (c.cumple || '').slice(5, 7) === String(new Date().getMonth() + 1).padStart(2, '0');
+    const tags = [hist.length ? `${hist.length} visita${hist.length > 1 ? 's' : ''}${conmigo ? ' · ' + conmigo + ' contigo' : ''}` : 'Primera vez', c.membresia ? '💳 ' + c.membresia : '', cumple ? '🎂 Cumple este mes' : '', c.sellos ? `🎟️ ${c.sellos}/${t.fidelidad?.meta || 10} sellos` : ''].filter(Boolean);
+    return `<div class="row wrapx" style="gap:6px;margin-top:10px">${tags.map(x => `<span class="pill">${esc(x)}</span>`).join('')}</div>
+      ${ult ? `<div class="xs mut" style="margin-top:8px">Última vez: ${S.parse(ult.inicio).getDate()} ${['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][S.parse(ult.inicio).getMonth()]} · ${esc(ult.items.map(i => S.service(i)?.nombre).join(' + '))} con ${esc(S.member(ult.staffId)?.nombre || '')}</div>` : ''}
+      ${c.notas ? `<div class="sm" style="margin-top:6px">📝 ${esc(c.notas)}</div>` : ''}`;
+  }
+  function ficha(cid) {
+    const c = S.client(cid); const m = S.member(yo); const hist = S.bookings(t.id).filter(b => b.cid === cid && b.estado !== 'cancelada').sort((a, b) => b.inicio.localeCompare(a.inicio)).slice(0, 6);
+    sheet(`<div class="row">${avatar(c, 'lg r')}<div class="g"><h2>${esc(c.nombre)}</h2><div class="xs mut">${esc(c.tel || '')}</div></div>${c.tel ? `<a class="ico" target="_blank" href="${wa(c.tel, `Hola ${c.nombre.split(' ')[0]}, soy ${m.nombre} de ${t.nombre}.`)}">${ic('wa', 18)}</a>` : ''}</div>
+      ${resumenCli(cid, m)}
+      ${(c.fotos || []).length ? `<h3 style="margin:16px 0 8px">Fotos de sus cortes</h3><div class="grid g4">${c.fotos.map(f => `<div style="aspect-ratio:1;border-radius:12px;background:url(${f}) center/cover"></div>`).join('')}</div>` : ''}
+      <h3 style="margin:16px 0 6px">Historial</h3>${hist.map(b => `<div class="li"><div style="width:62px" class="xs"><b>${S.parse(b.inicio).getDate()}/${S.parse(b.inicio).getMonth() + 1}</b></div><div class="g sm">${esc(b.items.map(i => S.service(i)?.nombre).join(' + '))}<div class="xs mut">con ${esc(S.member(b.staffId)?.nombre || '')}</div></div>${pill(b.estado)}</div>`).join('')}
+      <div class="field" style="margin-top:14px"><label>Nota para la próxima vez (la ve todo el equipo)</label><textarea id="fc-n" rows="2" placeholder="Ej.: fade bajo con 1.5, no le gusta conversar">${esc(c.notas || '')}</textarea></div>
+      <div class="row"><label class="btn ghost g" style="margin:0;color:var(--txt);font-size:14px">${ic('plus', 16)} Foto del corte<input type="file" accept="image/*" capture="environment" id="fc-f" hidden></label><button class="btn g" id="fc-ok">Guardar</button></div>`);
+    $('#fc-ok').onclick = () => { S.saveClient({ id: cid, notas: $('#fc-n').value.trim() }); closeSheet(); toast('Nota guardada'); };
+    $('#fc-f').onchange = async e => { try { const f = await leerImagen(e.target.files[0], 700, .72); S.saveClient({ id: cid, fotos: [...(S.client(cid).fotos || []), f].slice(-8) }); ficha(cid); toast('Foto guardada'); } catch (er) { toast('No se pudo guardar la foto', 'x'); } };
   }
   const pill = e => `<span class="pill ${e === 'completada' ? 'ok' : e === 'no-show' ? 'bad' : e === 'en curso' ? 'br' : ''}">${e}</span>`;
   const acciones = b => b.estado === 'confirmada' ? `<button class="btn ok sm g" data-e="llegó|${b.id}">${ic('check', 15)} Llegó</button><button class="btn danger sm" data-e="no-show|${b.id}">No vino</button>`
     : b.estado === 'llegó' ? `<button class="btn sm g" data-e="en curso|${b.id}">${ic('play', 14)} Empezar</button>` : b.estado === 'en curso' ? `<button class="btn sm g" data-e="terminar|${b.id}">${ic('check', 15)} Terminar y cobrar</button>` : '';
   function top(m) { const n = {}; S.bookings(t.id).filter(b => b.staffId === m.id && b.estado === 'completada').forEach(b => n[b.cid] = (n[b.cid] || 0) + 1); return Object.entries(n).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([c, k]) => [S.client(c), k]).filter(x => x[0]); }
   function onClick(e) {
-    const x = e.target.closest('[data-v],[data-d],[data-e],[data-a],[data-unb],[data-libre]'); if (!x) return; vibrar(8);
+    const x = e.target.closest('[data-e],[data-fc],[data-v],[data-d],[data-a],[data-unb],[data-libre]'); if (!x) return; vibrar(8);
+    if (x.dataset.fc && !e.target.closest('[data-e]')) return ficha(x.dataset.fc);
     if (x.dataset.libre) { const m = S.member(yo); S.saveStaff({ id: m.id, libres: [...(m.libres || []), x.dataset.libre] }); S.msg(S.tenant(slug).id, { tipo: 'Día libre', canal: 'Panel', texto: `${m.nombre} tomó libre el ${x.dataset.libre}.` }); toast('Día libre marcado: ya no se puede reservar contigo ese día'); return; }
     if (x.dataset.v) { vista = x.dataset.v; return app(); }
     if (x.dataset.d) { dia += +x.dataset.d; return app(); }

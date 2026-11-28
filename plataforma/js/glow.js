@@ -1,5 +1,5 @@
 import * as S from './store.js';
-import { $, $$, esc, ic, ini, toast, tilt, setBrand, contar, confetti, vibrar, sheet, closeSheet, leerImagen } from './ui.js';
+import { $, $$, esc, ic, ini, toast, tilt, setBrand, contar, confetti, vibrar, sheet, closeSheet, leerImagen , pickerEstilos } from './ui.js';
 
 const PRECIO = { Esencial: 35, Pro: 79, Negocio: 149 };
 const PALETAS = [['#FF7A59', '#FFB547'], ['#FF5C8A', '#FFB3C7'], ['#7C5CFF', '#B9A8FF'], ['#2EC5FF', '#9BE7FF'], ['#3DDC97', '#B8F5D9'], ['#E8C26E', '#F7E3B0'], ['#FFFFFF', '#9AA3B5'], ['#FF3B3B', '#FF9A6B']];
@@ -43,7 +43,7 @@ export function render(el, [sub]) {
 }
 
 function nuevo(el) {
-  const d = { nombre: '', tipo: 'barberia', zona: '', tel: '', equipo: '', color: PALETAS[0][0], color2: PALETAS[0][1], plan: 'Pro', logo: '', portada: '', servicios: null, clientes: '' }; let paso = 0;
+  const d = { nombre: '', tipo: 'barberia', zona: '', tel: '', equipo: '', color: PALETAS[0][0], color2: PALETAS[0][1], plan: 'Pro', logo: '', portada: '', servicios: null, clientes: '', estilo: '' }; let paso = 0;
   const pasos = ['Tu negocio', 'Tu estilo', 'Servicios y precios', 'Equipo y plan', 'Tus clientes'];
   const pinta = () => {
     setBrand({ color: d.color, color2: d.color2 });
@@ -58,7 +58,7 @@ function nuevo(el) {
     <label>Tipo de negocio</label><div class="grid g2" style="margin-bottom:14px">${Object.entries(S.TIPOS).map(([k, v]) => `<button class="chip ${d.tipo === k ? 'on' : ''}" data-tipo="${k}" style="justify-content:center;padding:12px">${v}</button>`).join('')}</div>
     <div class="field"><label>Zona / dirección</label><input id="d-z" value="${esc(d.zona)}" placeholder="Ej.: San Francisco, Panamá"></div><div class="field"><label>WhatsApp del negocio</label><input id="d-t" type="tel" value="${esc(d.tel)}" placeholder="6000-0000"></div></div>`;
   const p1 = () => `<h1 class="in" style="font-size:32px;margin:22px 0 6px">Tu estilo</h1><p class="mut in">Tus colores, tu logo y tu foto de portada. Todo se puede cambiar después.</p>
-    <div class="grid in2" style="margin:18px 0;grid-template-columns:repeat(4,1fr)">${PALETAS.map(([a, b], i) => `<button class="card tilt" data-pal="${i}" style="aspect-ratio:1;padding:0;cursor:pointer;background:linear-gradient(135deg,${b},${a});border:${d.color === a ? '3px solid #0F1420' : '1px solid var(--line)'}"></button>`).join('')}</div>
+    <h3 style="margin:18px 0 8px">Estilo de tu app</h3><p class="xs mut" style="margin:-4px 0 10px">Cómo la ven tus clientes. Puedes cambiarlo cuando quieras.</p>${pickerEstilos(d.estilo || S.estiloDe(d.tipo), d.nombre || 'Tu negocio')}<h3 style="margin:20px 0 0">Colores</h3><div class="grid in2" style="margin:18px 0;grid-template-columns:repeat(4,1fr)">${PALETAS.map(([a, b], i) => `<button class="card tilt" data-pal="${i}" style="aspect-ratio:1;padding:0;cursor:pointer;background:linear-gradient(135deg,${b},${a});border:${d.color === a ? '3px solid #0F1420' : '1px solid var(--line)'}"></button>`).join('')}</div>
     <div class="grid g2 in3"><div class="field"><label>Color principal</label><input id="d-c" type="color" value="${d.color}" style="height:50px;padding:6px"></div><div class="field"><label>Secundario</label><input id="d-c2" type="color" value="${d.color2}" style="height:50px;padding:6px"></div></div>
     <div class="grid g2 in3"><label style="cursor:pointer;margin:0"><div style="height:110px;border-radius:18px;border:1.5px dashed var(--line2);display:grid;place-items:center;${d.logo ? `background:#fff url(${d.logo}) center/contain no-repeat` : ''}">${d.logo ? '' : `<span class="sm mut">${ic('plus')} Logo</span>`}</div><input type="file" accept="image/*" id="d-lf" hidden></label>
       <label style="cursor:pointer;margin:0"><div style="height:110px;border-radius:18px;border:1.5px dashed var(--line2);display:grid;place-items:center;${d.portada ? `background:url(${d.portada}) center/cover` : ''}">${d.portada ? '' : `<span class="sm mut">${ic('plus')} Portada</span>`}</div><input type="file" accept="image/*" id="d-pf" hidden></label></div>
@@ -92,7 +92,8 @@ function nuevo(el) {
     if (cf) cf.onchange = async e => { const f = e.target.files[0]; if (f) $('#d-cl').value = await f.text(); };
   };
   el.onclick = e => {
-    const x = e.target.closest('[data-a],[data-tipo],[data-pal],[data-plan],[data-del]'); if (!x) return; vibrar(8); leer();
+    const x = e.target.closest('[data-a],[data-tipo],[data-pal],[data-plan],[data-del],[data-est]'); if (!x) return; vibrar(8); leer();
+    if (x.dataset.est) { d.estilo = x.dataset.est; return pinta(); }
     if (x.dataset.tipo) { d.tipo = x.dataset.tipo; return pinta(); }
     if (x.dataset.pal) { [d.color, d.color2] = PALETAS[+x.dataset.pal]; return pinta(); }
     if (x.dataset.plan) { d.plan = x.dataset.plan; return pinta(); }
@@ -106,7 +107,7 @@ function nuevo(el) {
       const eq = d.equipo.split(',').map(z => z.trim()).filter(Boolean);
       try {
         const t = S.crearNegocio({ ...d, equipo: eq.length ? eq : ['Dueño'], servicios: d.servicios });
-        if (d.logo || d.portada) S.saveTenant({ id: t.id, logo: d.logo, portada: d.portada });
+        S.saveTenant({ id: t.id, logo: d.logo, portada: d.portada, modoInicio: true });
         let n = 0; d.clientes.split(/\r?\n/).map(l => l.split(/[,;\t]/).map(z => z.trim())).filter(l => l[0]).forEach(([nombre, tel = '']) => { S.guardar('clients', { tid: t.id, nombre, tel, email: '', cumple: '', notas: '', etiquetas: 'importado', creado: S.iso(new Date()), sellos: 0, premios: 0 }); n++; });
         listo(S.tenant(t.id), n);
       } catch (err) { toast('No se pudo guardar (fotos muy pesadas para la demo)', 'x'); }

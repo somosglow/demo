@@ -18,9 +18,9 @@ export const money = n => '$' + (Math.round(n * 100) / 100).toFixed(2).replace(/
 export const ITBMS = 0.07;
 
 let db = null;
-const COLS = ['tenants', 'services', 'staff', 'clients', 'bookings', 'sales', 'waitlist', 'reviews', 'offers', 'coupons', 'giftcards', 'products', 'packages', 'cpackages', 'expenses', 'queue', 'outbox'];
+const COLS = ['tenants', 'services', 'staff', 'clients', 'bookings', 'sales', 'waitlist', 'reviews', 'offers', 'coupons', 'giftcards', 'products', 'packages', 'cpackages', 'expenses', 'queue', 'outbox', 'promos', 'vouchers'];
 function load() {
-  try { const x = JSON.parse(localStorage.getItem(KEY)); if (x && x.v === 4) { COLS.forEach(k => x[k] = x[k] || []); return x; } } catch (e) {}
+  try { const x = JSON.parse(localStorage.getItem(KEY)); if (x && x.v === 4) { COLS.forEach(k => x[k] = x[k] || []); x.tenants.forEach(t => { t.estilo = t.estilo || estiloDe(t.tipo); if (t.demo && !x.promos.some(p => p.tid === t.id)) seedPromos(x, t); }); return x; } } catch (e) {}
   const s = seed(); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} return s;
 }
 function save(origen = 'local') {
@@ -58,6 +58,36 @@ export const cpackages = tid => of('cpackages', tid);
 export const expenses = tid => of('expenses', tid);
 export const queue = tid => of('queue', tid);
 export const outbox = tid => of('outbox', tid);
+export const promos = tid => of('promos', tid).filter(x => !x.borrado);
+export const promo = id => db.promos.find(x => x.id === id);
+export const vouchers = tid => of('vouchers', tid);
+/* promo que se compra en la app: precio fijo, cupos limitados y fecha límite. Al comprarla, el cliente recibe un cupón con código y QR para canjear en el local */
+export const promoDisponible = p => p && p.activa && !p.borrado && (!p.vence || p.vence >= ymd(new Date())) && (p.vendidos || 0) < p.cupos;
+export function comprarPromo(pid, cliente, metodo = 'Tarjeta') {
+  const p = promo(pid); if (!promoDisponible(p)) throw new Error('Esta promo ya no está disponible');
+  const c = upsertClient(p.tid, cliente); let codigo; do { codigo = 'PROMO-' + Math.random().toString(36).slice(2, 7).toUpperCase(); } while (db.vouchers.some(v => v.codigo === codigo));
+  const v = { id: uid('v'), tid: p.tid, pid, cid: c.id, codigo, precio: p.precio, metodo, estado: 'activo', creado: iso(new Date()), vence: p.validez ? ymd(addDays(new Date(), p.validez)) : '' };
+  db.vouchers.push(v); put('promos', { id: p.id, vendidos: (p.vendidos || 0) + 1 });
+  msg(p.tid, { cid: c.id, tipo: 'Cupón de promo', texto: `¡Listo ${c.nombre.split(' ')[0]}! Compraste "${p.titulo}" por ${money(p.precio)}. Tu cupón: ${codigo}. Muéstralo en ${tenant(p.tid).nombre} al llegar.` });
+  return v;
+}
+export function canjearVoucher(tid, codigo) {
+  const v = vouchers(tid).find(x => x.codigo.toUpperCase() === String(codigo).trim().toUpperCase());
+  if (!v) throw new Error('No existe ese cupón'); if (v.estado === 'canjeado') throw new Error('Ese cupón ya se usó el ' + v.canjeado.slice(0, 10));
+  if (v.vence && v.vence < ymd(new Date())) throw new Error('Ese cupón venció');
+  return put('vouchers', { id: v.id, estado: 'canjeado', canjeado: iso(new Date()) });
+}
+/* anuncios: 2 cupos por semana para cada tipo de negocio (barbería, salón, spa, uñas, estética) */
+export const CUPOS_DEST = 2;
+export const destacadosDe = tipo => db.tenants.filter(x => x.tipo === tipo && destacado(x));
+export const destacado = t => !!(t?.destacado?.hasta && t.destacado.hasta >= ymd(new Date()));
+export function seedPromos(dbx, t) {
+  const sv = dbx.services.filter(s => s.tid === t.id && !s.borrado); if (sv.length < 3) return;
+  const mk = (s, desc, pct, cupos, vend, dias) => dbx.promos.push({ id: uid('p'), tid: t.id, titulo: s.nombre, desc, servicios: [s.id], normal: s.precio, precio: Math.round(s.precio * (1 - pct)), cupos, vendidos: vend, vence: ymd(addDays(new Date(), dias)), validez: 60, activa: true, creado: iso(new Date()) });
+  const top = [...sv].sort((a, b) => b.precio - a.precio);
+  mk(top[0], 'Precio especial de lanzamiento. Compra hoy, úsalo cuando quieras en los próximos 60 días.', .3, 50, 38, 12);
+  mk(top[Math.min(2, top.length - 1)], 'Ideal para regalar o para tu próxima visita.', .25, 30, 9, 20);
+}
 export const precio = (sid, staffId) => { const s = service(sid); if (!s) return 0; const p = staffId && s.precios && s.precios[staffId]; return p != null && p !== '' ? Number(p) : s.precio; };
 export const extrasDe = tid => (tenant(tid)?.extras || []);
 export const ofertaActiva = (tid, sid) => offers(tid).find(o => o.activa && (!o.vence || o.vence >= ymd(new Date())) && (!o.servicios?.length || o.servicios.includes(sid)));
@@ -243,12 +273,13 @@ const PRODUCTOS = {
   salon: [['Shampoo sin sal', 18, 15], ['Mascarilla reparadora', 22, 9], ['Protector térmico', 16, 11], ['Sérum de puntas', 20, 4]],
   spa: [['Aceite de masaje', 18, 10], ['Vela aromática', 15, 8], ['Crema corporal', 20, 12]],
   estetica: [['Sérum de pestañas', 28, 7], ['Gel de cejas', 12, 10], ['Desmaquillante', 14, 9]] };
-export function crearNegocio({ nombre, tipo = 'barberia', zona = '', color = '#FF7A59', color2 = '#FFB547', tel = '', equipo = ['Ana', 'Luis'], plan = 'Esencial', demo = false, servicios = null }) {
+export const estiloDe = tipo => ({ barberia: 'elegante', spa: 'natural', unas: 'vibrante', salon: 'clasico', estetica: 'natural' }[tipo] || 'claro');
+export function crearNegocio({ nombre, tipo = 'barberia', zona = '', color = '#FF7A59', color2 = '#FFB547', tel = '', equipo = ['Ana', 'Luis'], plan = 'Esencial', demo = false, servicios = null, estilo = '' }) {
   const tid = uid('t');
   let slug = nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'negocio';
   while (tenant(slug)) slug += '-' + Math.floor(Math.random() * 9);
   const anio = new Date().getFullYear();
-  const t = { id: tid, slug, nombre, tipo, zona, color, color2, tel, plan, estado: 'activo', creado: iso(new Date()), demo,
+  const t = { id: tid, slug, nombre, tipo, zona, color, color2, tel, plan, estilo: estilo || estiloDe(tipo), estado: 'activo', creado: iso(new Date()), demo,
     horario: HOR(), deposito: { activo: tipo !== 'barberia', pct: 20 }, politica: 'Puedes cancelar o cambiar gratis hasta 4 horas antes.',
     fidelidad: { meta: 10, premio: 'Servicio gratis' }, referidos: { activo: true, pct: 10 }, avisos: { h24: true, antes: 120, gracias: true, tetoca: 21 },
     sucursales: [{ id: 'principal', nombre: zona ? zona.split(',')[0] : 'Principal', dir: zona }], fila: true, idiomas: ['es', 'en'],
@@ -271,7 +302,7 @@ export function crearNegocio({ nombre, tipo = 'barberia', zona = '', color = '#F
 
 /* ---------- datos de ejemplo ---------- */
 function seed() {
-  db = { v: 4, tenants: [], services: [], staff: [], clients: [], bookings: [], sales: [], waitlist: [], reviews: [], offers: [], coupons: [], giftcards: [], products: [], packages: [], cpackages: [], expenses: [], queue: [], outbox: [] };
+  db = { v: 4, tenants: [], services: [], staff: [], clients: [], bookings: [], sales: [], waitlist: [], reviews: [], offers: [], coupons: [], giftcards: [], products: [], packages: [], cpackages: [], expenses: [], queue: [], outbox: [], promos: [], vouchers: [] };
   const a = crearNegocioSeed({ nombre: 'Barbería Ejemplo', tipo: 'barberia', zona: 'San Francisco, Panamá', color: '#FF7A59', color2: '#FFB547', equipo: ['Carlos', 'Andrés', 'Kevin'], plan: 'Pro' }, 'barberia-ejemplo');
   const b = crearNegocioSeed({ nombre: 'Nails Studio Ejemplo', tipo: 'unas', zona: 'Costa del Este, Panamá', color: '#FF5C8A', color2: '#FFB3C7', equipo: ['Valentina', 'Sofía'], plan: 'Esencial' }, 'nails-ejemplo');
   const c = crearNegocioSeed({ nombre: 'Spa Ejemplo', tipo: 'spa', zona: 'Coronado, Panamá', color: '#3DDC97', color2: '#B8F5D9', equipo: ['Mariela', 'José'], plan: 'Pro' }, 'spa-ejemplo');
@@ -290,6 +321,7 @@ function seed() {
   a.sucursales = [{ id: 'principal', nombre: 'San Francisco', dir: 'Calle 74, San Francisco' }, { id: 'costa', nombre: 'Costa del Este', dir: 'Av. Centenario, Costa del Este' }];
   db.staff.filter(m => m.tid === a.id)[2].sucursal = 'costa';
   [a, b, c].forEach(t => historia(t.id));
+  [a, b, c].forEach(t => seedPromos(db, t)); a.destacado = { hasta: ymd(addDays(new Date(), 6)), plan: 'Semana' };
   [a, b, c].forEach(t => db.clients.filter(c2 => c2.tid === t.id).slice(0, 7).forEach((c2, i) => { if (t.membresias[i % 2]) c2.membresia = t.membresias[i % 2].nombre; }));
   return db;
 }

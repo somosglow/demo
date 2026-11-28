@@ -68,8 +68,18 @@ export function contar(root = document) {
     (function f(t) { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = pre + (fin * e).toFixed(dec) + suf; if (k < 1) requestAnimationFrame(f); })(t0); });
 }
 
-export function setBrand(t) { const r = document.documentElement.style; r.setProperty('--brand', t?.color || '#FF7A59'); r.setProperty('--brand2', t?.color2 || '#FFB547');
-  document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#F6F5F2'); }
+/* cara = true en lo que ve el cliente (su app y la TV): ahí se aplica el estilo del negocio */
+export function setBrand(t, cara = false) { const d = document.documentElement, r = d.style; r.setProperty('--brand', t?.color || '#FF7A59'); r.setProperty('--brand2', t?.color2 || '#FFB547');
+  const e = cara && t?.estilo && t.estilo !== 'claro' ? t.estilo : ''; if (e) d.dataset.estilo = e; else delete d.dataset.estilo;
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', (ESTILOS[e] || ESTILOS.claro).bg); }
+export const ESTILOS = {
+  claro: { n: 'Glow claro', d: 'Limpio y luminoso', bg: '#F6F5F2', card: '#FFFFFF', tx: '#0F1420', f: 'Poppins', w: 700 },
+  elegante: { n: 'Elegante', d: 'Oscuro y fuerte · barberías', bg: '#0C0D10', card: '#1B1C21', tx: '#F4F1EA', f: 'Oswald', w: 600, up: 1 },
+  natural: { n: 'Natural', d: 'Cálido y suave · spas', bg: '#F1ECE3', card: '#FFFCF7', tx: '#2A2621', f: 'Cormorant Garamond', w: 700 },
+  vibrante: { n: 'Vibrante', d: 'Colores vivos · uñas', bg: '#FFF3F8', card: '#FFFFFF', tx: '#0F1420', f: 'Poppins', w: 800 },
+  clasico: { n: 'Clásico', d: 'Sobrio y fino · salones', bg: '#FAF8F4', card: '#FFFFFF', tx: '#1D1B18', f: 'Playfair Display', w: 600 },
+};
+export const pickerEstilos = (sel, nombre = 'Tu negocio') => `<div class="estilos">${Object.entries(ESTILOS).map(([k, e]) => `<button type="button" class="est ${sel === k ? 'on' : ''}" data-est="${k}"><div class="pv" style="background:${e.bg};color:${e.tx}"><b style="font-family:'${e.f}';font-weight:${e.w};${e.up ? 'text-transform:uppercase;' : ''}">${esc(nombre).slice(0, 16)}</b><i></i></div><div class="b sm">${e.n}</div><div class="xs mut">${e.d}</div></button>`).join('')}</div>`;
 
 /* .ics para agregar al calendario */
 export function ics({ titulo, inicio, dur, lugar }) {
