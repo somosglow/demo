@@ -1,0 +1,30 @@
+{
+ "id": "/glow-demo/equipo",
+ "name": "Glow Demo · Equipo",
+ "short_name": "Equipo",
+ "start_url": "/glow-demo/equipo",
+ "scope": "/glow-demo/equipo",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#FFFFFF",
+ "theme_color": "#FFFFFF",
+ "lang": "es",
+ "icons": [
+  {
+   "src": "/glow-demo/icons/e-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/glow-demo/icons/e-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "/glow-demo/icons/e-mask.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
