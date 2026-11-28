@@ -55,7 +55,11 @@ function filas() {
   const fmt = { fecha: 'yyyy-MM-dd', hora: 'HH:mm', proximo_toque: 'yyyy-MM-dd' };
   return v.map((r, i) => { const o = { _fila: i + 2 }; h.forEach((k, j) => o[k] = r[j] instanceof Date ? Utilities.formatDate(r[j], TZ, fmt[k] || "yyyy-MM-dd'T'HH:mm") : r[j]); return o; });
 }
-function set(f, k, val) { const c = cab().indexOf(k); if (c >= 0) hoja().getRange(f._fila, c + 1).setValue(val); f[k] = val; }
+// lo que escribe el público nunca se interpreta como fórmula (=, +, -, @ al inicio) — arreglo de Max
+const TEXTO = ['fecha', 'hora', 'whatsapp', 'proximo_toque'];
+const seguro = v => typeof v === 'string' && /^[=+\-@]/.test(v) ? "'" + v : v;
+const fila = f => cab().map(k => f[k] === undefined ? '' : TEXTO.includes(k) ? f[k] : seguro(f[k]));
+function set(f, k, val) { const c = cab().indexOf(k); if (c >= 0) hoja().getRange(f._fila, c + 1).setValue(TEXTO.includes(k) ? val : seguro(val)); f[k] = val; }
 function enviados(f) { try { return JSON.parse(f.enviados || '{}'); } catch (e) { return {}; } }
 function marcar(f, key) { const e = enviados(f); e[key] = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd'T'HH:mm"); set(f, 'enviados', JSON.stringify(e)); }
 function out(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
@@ -99,12 +103,29 @@ function nuevo(b, interno) {
   const c = CacheService.getScriptCache(); const n = Number(c.get('n') || 0);
   if (!interno && n > 30) return { ok: false, error: 'limite' }; c.put('n', String(n + 1), 3600);
   const ahora = new Date();
+  // ya existe (reagendó, o un prospecto de la lista que agendó desde el link): misma fila, nueva fecha, recordatorios desde cero — arreglo de Max
+  const dig = x => String(x || '').replace(/\D/g, '').slice(-8);
+  const prev = !interno && b.fecha ? filas().find(x => dig(x.whatsapp) === dig(tel) && ['prospecto', 'nuevo', 'confirmado'].includes(x.estado)) : null;
+  if (prev) {
+    const eraProspecto = prev.estado === 'prospecto';
+    const antes = prev.fecha ? fechaLarga(prev.fecha) + ' ' + h12(prev.hora) : 'sin fecha';
+    set(prev, 'fecha', corto(b.fecha, 10)); set(prev, 'hora', corto(b.hora, 5)); if (b.modo) set(prev, 'modo', corto(b.modo, 30));
+    if (email) set(prev, 'email', email); if (b.nombre && !prev.nombre) set(prev, 'nombre', corto(b.nombre, 80));
+    if (b.acepta) set(prev, 'acepta', 'si'); if (eraProspecto) { set(prev, 'estado', 'nuevo'); set(prev, 'proximo_toque', ''); }
+    if (corto(b.modo, 30) === 'Videollamada' && !prev.reunion) set(prev, 'reunion', sala(null));
+    const e = enviados(prev); delete e.confirmacion; delete e.rec24; delete e.rec2; delete e.noshow; set(prev, 'enviados', JSON.stringify(e));
+    set(prev, 'notas', corto((prev.notas ? prev.notas + '\n' : '') + Utilities.formatDate(ahora, TZ, 'dd/MM HH:mm') + (eraProspecto ? ' Agendó demo desde el link' : ' Reagendó (antes: ' + antes + ')'), 3000));
+    set(prev, 'actualizado', ahora);
+    avisar(eraProspecto ? `🎉 ${prev.negocio} (de la lista) agendó demo` : `🔁 ${prev.negocio} reagendó su demo`, `${fechaLarga(prev.fecha)} ${h12(prev.hora)}${eraProspecto ? '' : ' (antes: ' + antes + ')'}.`, 'high', prev.id);
+    if (prev.acepta === 'si') contactar(prev, 'confirmacion');
+    return { ok: true, id: prev.id };
+  }
   const f = { id: Utilities.getUuid().slice(0, 8), creado: ahora, origen: corto(b.origen, 30), nombre: corto(b.nombre, 80), negocio: corto(b.negocio, 80),
     tipo: corto(b.tipo, 30), zona: corto(b.zona, 80), whatsapp: tel, email, acepta: b.acepta ? 'si' : (interno ? 'manual' : 'no'),
     modo: corto(b.modo, 30), equipo: corto(b.equipo, 20), fecha: corto(b.fecha, 10), hora: corto(b.hora, 5),
     estado: 'nuevo', dueno: corto(b.dueno || 'Juan', 20), ultimo_toque: '', proximo_toque: b.fecha ? '' : Utilities.formatDate(ahora, TZ, 'yyyy-MM-dd'),
     toques: 0, notas: corto(b.notas, 500), reunion: corto(b.modo, 30) === 'Videollamada' ? sala(null) : '', enviados: '{}', actualizado: ahora };
-  hoja().appendRow(cab().map(k => f[k] === undefined ? '' : f[k]));
+  hoja().appendRow(fila(f));
   f._fila = hoja().getLastRow();
   avisar(`🗓️ Nueva demo: ${f.negocio}`, `${f.tipo || 'Negocio'} en ${f.zona || '—'}${f.fecha ? ' · ' + fechaLarga(f.fecha) + ' ' + h12(f.hora) : ''} · ${f.modo}\nAbre Glow Ventas para llamar o escribir.`, 'high', f.id);
   if (!interno && f.fecha) contactar(f, 'confirmacion');
@@ -123,7 +144,7 @@ function importar(b) {
       tipo: corto(x.tipo, 30), zona: corto(x.zona, 80), whatsapp: tel, email: '', acepta: 'no', modo: '', equipo: '', fecha: '', hora: '',
       estado: 'prospecto', dueno: corto(x.dueno || 'Juan', 20), ultimo_toque: '', proximo_toque: corto(x.proximo_toque, 10), toques: 0,
       notas: corto(x.notas, 500), reunion: '', enviados: '{}', actualizado: ahora };
-    hoja().appendRow(cab().map(k => f[k] === undefined ? '' : f[k])); n++;
+    hoja().appendRow(fila(f)); n++;
   });
   return { ok: true, importados: n, repetidos: rep };
 }
