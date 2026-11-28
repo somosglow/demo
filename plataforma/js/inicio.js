@@ -1,5 +1,6 @@
 import * as S from './store.js';
-import { esc, ic, ini, setBrand, tilt } from './ui.js';
+import { esc, ic, ini, setBrand, tilt, estrellas } from './ui.js';
+import { mapa, CSS_MAPA, animarMapa } from './mapa.js';
 
 export function render(el) {
   setBrand(null);
@@ -48,10 +49,26 @@ export function render(el) {
     </section>
 
     <section style="margin-top:46px">
+      <div class="row sp wrapx" style="margin-bottom:12px"><div><h2>Negocios con Glow en Panamá</h2><p class="mut sm" style="margin:4px 0 0">Toca un pin para ver su app y reservar.</p></div><span class="pill"><i class="dot"></i> ${S.tenants().filter(t => t.estado === 'activo').length} negocios</span></div>
+      <div id="mapa">${mapa({ vista: 'pais', alto: Math.min(520, Math.max(340, innerWidth * .5)) })}</div>
+    </section>
+
+    <section style="margin-top:46px">
       <h2 style="margin-bottom:16px">Todo lo que tu negocio necesita</h2>
       <div class="grid g3 stagger">
         ${f.map(([i, t, d]) => `<div class="card tilt flat"><div class="ico pop" style="background:var(--grad);color:var(--ink);border:0">${ic(i)}</div><h3 style="margin:14px 0 4px">${t}</h3><p class="mut sm" style="margin:0">${d}</p></div>`).join('')}
       </div>
+    </section>
+
+    <section style="margin-top:46px" id="planes">
+      <h2>Planes</h2><p class="mut sm" style="margin:4px 0 16px">Precio fundador para los primeros 10 negocios: instalación a mitad de precio. Paga mensual o anual (2 meses gratis).</p>
+      <div class="grid g3 rsp stagger">${[
+        ['Esencial', 35, 350, 'Para empezar a llenar tu agenda', ['Tu app de reservas con tu marca y tu link', 'Recordatorios automáticos', 'Caja con ITBMS y cierre del día', 'Tarjeta de fidelidad y referidos', 'Fila sin cita, pase QR y pantalla TV', 'Clientes, servicios y precios por profesional', 'Hasta 3 profesionales']],
+        ['Pro', 79, 350, 'El más elegido: vende más en automático', ['Todo lo de Esencial', 'Asistente con IA en WhatsApp que agenda', 'Depósitos con Yappy o tarjeta', 'Ofertas, cupones, regalos, paquetes y membresías', 'Campañas: te toca tu corte, cumpleaños, día flojo', 'Reportes completos y exportables', 'Hasta 10 profesionales']],
+        ['Negocio', 149, 600, 'Para cadenas y varias sucursales', ['Todo lo de Pro', 'Varias sucursales en un solo panel', 'Profesionales ilimitados', 'Inventario por sucursal', 'Soporte prioritario y capacitación', 'Factura electrónica DGI integrada']],
+      ].map(([n, p, ins, d, f], i) => `<div class="card ${i === 1 ? 'glass' : 'flat'} tilt" style="${i === 1 ? 'border:2px solid var(--brand)' : ''}"><div class="pop"><div class="row sp"><h3>${n}</h3>${i === 1 ? '<span class="pill br">Más elegido</span>' : ''}</div><p class="xs mut" style="margin:4px 0 10px">${d}</p>
+        <div style="font-size:38px;font-weight:800;letter-spacing:-.03em">$${p}<span class="sm mut" style="font-weight:500">/mes</span></div><div class="xs mut">o $${p * 10}/año · instalación <s>$${ins}</s> <b style="color:var(--txt)">$${ins / 2}</b> precio fundador</div>
+        <div class="col" style="gap:6px;margin:14px 0">${f.map(x => `<div class="row sm" style="gap:8px;align-items:flex-start"><span style="color:var(--ok)">${ic('check', 16)}</span>${x}</div>`).join('')}</div><a class="btn ${i === 1 ? '' : 'ghost'} w" href="#/glow/nuevo">Empezar</a></div></div>`).join('')}</div>
     </section>
 
     <section class="card glass c" style="margin-top:46px;padding:30px 20px">
@@ -62,4 +79,7 @@ export function render(el) {
     <p class="c dim xs" style="margin-top:30px">Glow · Panamá · Versión demo: los datos se guardan solo en este navegador.</p>
   </main>`;
   tilt(el);
+  if (!document.getElementById('css-mapa')) { const st = document.createElement('style'); st.id = 'css-mapa'; st.textContent = CSS_MAPA; document.head.append(st); }
+  el.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { el.querySelectorAll('[data-v]').forEach(x => x.classList.toggle('on', x === b)); el.querySelector('#mapa').innerHTML = mapa({ vista: b.dataset.v, alto: Math.min(520, Math.max(360, innerWidth * .55)) }); });
+  return animarMapa(el.querySelector('#mapa'));
 }

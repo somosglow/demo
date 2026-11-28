@@ -1,7 +1,7 @@
 import * as S from './store.js';
-import { $, $$, esc, ic, ini, toast, tilt, setBrand, contar, confetti, vibrar, sheet, closeSheet } from './ui.js';
+import { $, $$, esc, ic, ini, toast, tilt, setBrand, contar, confetti, vibrar, sheet, closeSheet, leerImagen } from './ui.js';
 
-const PRECIO = { Esencial: 35, Pro: 79 };
+const PRECIO = { Esencial: 35, Pro: 79, Negocio: 149 };
 const PALETAS = [['#FF7A59', '#FFB547'], ['#FF5C8A', '#FFB3C7'], ['#7C5CFF', '#B9A8FF'], ['#2EC5FF', '#9BE7FF'], ['#3DDC97', '#B8F5D9'], ['#E8C26E', '#F7E3B0'], ['#FFFFFF', '#9AA3B5'], ['#FF3B3B', '#FF9A6B']];
 
 export function render(el, [sub]) {
@@ -43,45 +43,73 @@ export function render(el, [sub]) {
 }
 
 function nuevo(el) {
-  const d = { nombre: '', tipo: 'barberia', zona: '', tel: '', equipo: '', color: PALETAS[0][0], color2: PALETAS[0][1], plan: 'Pro' }; let paso = 0;
-  const pasos = ['Tu negocio', 'Tu estilo', 'Tu equipo', 'Listo'];
+  const d = { nombre: '', tipo: 'barberia', zona: '', tel: '', equipo: '', color: PALETAS[0][0], color2: PALETAS[0][1], plan: 'Pro', logo: '', portada: '', servicios: null, clientes: '' }; let paso = 0;
+  const pasos = ['Tu negocio', 'Tu estilo', 'Servicios y precios', 'Equipo y plan', 'Tus clientes'];
   const pinta = () => {
     setBrand({ color: d.color, color2: d.color2 });
-    el.innerHTML = `<header class="top"><div class="wrap in-top">${paso ? `<button class="ico" data-a="atras">${ic('back')}</button>` : `<a class="ico" href="#/">${ic('x')}</a>`}<div class="g"><div class="b">Crea tu app</div><div class="steps" style="margin-top:6px">${pasos.map((_, i) => `<i class="${i <= paso ? 'on' : ''}"></i>`).join('')}</div></div></div></header>
-    <main class="wrap" style="padding-bottom:120px">${[p0, p1, p2][paso]()}</main>
-    <div class="dock"><div style="max-width:560px;margin:0 auto"><button class="btn w" data-a="sig">${paso === 2 ? ic('bolt', 18) + ' Crear mi app' : 'Continuar ' + ic('next', 16)}</button></div></div>`;
-    tilt(el);
+    if (!d.servicios || d._tipo !== d.tipo) { d.servicios = S.plantilla(d.tipo); d._tipo = d.tipo; }
+    el.innerHTML = `<header class="top"><div class="wrap in-top">${paso ? `<button class="ico" data-a="atras">${ic('back')}</button>` : `<a class="ico" href="#/">${ic('x')}</a>`}<div class="g"><div class="b">Crea tu app · ${pasos[paso]}</div><div class="steps" style="margin-top:6px">${pasos.map((_, i) => `<i class="${i <= paso ? 'on' : ''}"></i>`).join('')}</div></div></div></header>
+    <main class="wrap" style="padding-bottom:120px">${[p0, p1, p2, p3, p4][paso]()}</main>
+    <div class="dock"><div style="max-width:560px;margin:0 auto"><button class="btn w" data-a="sig">${paso === 4 ? ic('bolt', 18) + ' Crear mi app' : 'Continuar ' + ic('next', 16)}</button></div></div>`;
+    tilt(el); enlazar();
   };
-  const p0 = () => `<h1 class="in" style="font-size:32px;margin:22px 0 6px">¿Cómo se llama tu negocio?</h1><p class="mut in">En un minuto tienes tu app lista para compartir.</p>
-    <div class="in2" style="margin-top:18px"><div class="field"><label>Nombre</label><input id="d-n" value="${esc(d.nombre)}" placeholder="Ej.: Barbería Los Reyes" autofocus></div>
+  const p0 = () => `<h1 class="in" style="font-size:32px;margin:22px 0 6px">¿Cómo se llama tu negocio?</h1><p class="mut in">En pocos minutos tienes tu app lista para compartir.</p>
+    <div class="in2" style="margin-top:18px"><div class="field"><label>Nombre</label><input id="d-n" value="${esc(d.nombre)}" placeholder="Ej.: Barbería Los Reyes"></div>
     <label>Tipo de negocio</label><div class="grid g2" style="margin-bottom:14px">${Object.entries(S.TIPOS).map(([k, v]) => `<button class="chip ${d.tipo === k ? 'on' : ''}" data-tipo="${k}" style="justify-content:center;padding:12px">${v}</button>`).join('')}</div>
-    <div class="field"><label>Zona</label><input id="d-z" value="${esc(d.zona)}" placeholder="Ej.: San Francisco, Panamá"></div><div class="field"><label>WhatsApp del negocio</label><input id="d-t" type="tel" value="${esc(d.tel)}" placeholder="6000-0000"></div></div>`;
-  const p1 = () => `<h1 class="in" style="font-size:32px;margin:22px 0 6px">Elige tus colores</h1><p class="mut in">Así se verá tu app. Lo puedes cambiar cuando quieras.</p>
-    <div class="grid in2" style="margin:18px 0;grid-template-columns:repeat(4,1fr)">${PALETAS.map(([a, b], i) => `<button class="card tilt" data-pal="${i}" style="aspect-ratio:1;padding:0;cursor:pointer;background:linear-gradient(135deg,${b},${a});border:${d.color === a ? '3px solid #fff' : '1px solid var(--line)'}"></button>`).join('')}</div>
+    <div class="field"><label>Zona / dirección</label><input id="d-z" value="${esc(d.zona)}" placeholder="Ej.: San Francisco, Panamá"></div><div class="field"><label>WhatsApp del negocio</label><input id="d-t" type="tel" value="${esc(d.tel)}" placeholder="6000-0000"></div></div>`;
+  const p1 = () => `<h1 class="in" style="font-size:32px;margin:22px 0 6px">Tu estilo</h1><p class="mut in">Tus colores, tu logo y tu foto de portada. Todo se puede cambiar después.</p>
+    <div class="grid in2" style="margin:18px 0;grid-template-columns:repeat(4,1fr)">${PALETAS.map(([a, b], i) => `<button class="card tilt" data-pal="${i}" style="aspect-ratio:1;padding:0;cursor:pointer;background:linear-gradient(135deg,${b},${a});border:${d.color === a ? '3px solid #0F1420' : '1px solid var(--line)'}"></button>`).join('')}</div>
     <div class="grid g2 in3"><div class="field"><label>Color principal</label><input id="d-c" type="color" value="${d.color}" style="height:50px;padding:6px"></div><div class="field"><label>Secundario</label><input id="d-c2" type="color" value="${d.color2}" style="height:50px;padding:6px"></div></div>
-    <div class="card glass tilt in4" style="margin-top:8px"><div class="row pop"><div class="av r">${esc(ini(d.nombre || 'Tu negocio'))}</div><div class="g"><div class="b">${esc(d.nombre || 'Tu negocio')}</div><div class="xs mut">${esc(S.TIPOS[d.tipo])}</div></div><span class="btn sm">Reservar</span></div></div>`;
-  const p2 = () => `<h1 class="in" style="font-size:32px;margin:22px 0 6px">¿Quién atiende?</h1><p class="mut in">Escribe los nombres separados por coma. Cada uno tendrá su acceso con PIN.</p>
+    <div class="grid g2 in3"><label style="cursor:pointer;margin:0"><div style="height:110px;border-radius:18px;border:1.5px dashed var(--line2);display:grid;place-items:center;${d.logo ? `background:#fff url(${d.logo}) center/contain no-repeat` : ''}">${d.logo ? '' : `<span class="sm mut">${ic('plus')} Logo</span>`}</div><input type="file" accept="image/*" id="d-lf" hidden></label>
+      <label style="cursor:pointer;margin:0"><div style="height:110px;border-radius:18px;border:1.5px dashed var(--line2);display:grid;place-items:center;${d.portada ? `background:url(${d.portada}) center/cover` : ''}">${d.portada ? '' : `<span class="sm mut">${ic('plus')} Portada</span>`}</div><input type="file" accept="image/*" id="d-pf" hidden></label></div>
+    <div class="cover in4" style="margin-top:14px;padding:18px;${d.portada ? `background:linear-gradient(180deg,rgba(10,12,18,.1),rgba(10,12,18,.7)),url(${d.portada}) center/cover` : ''}"><div class="row" style="position:relative;z-index:1">${d.logo ? `<div class="av" style="background:#fff url(${d.logo}) center/contain no-repeat"></div>` : `<div class="av" style="--c:#fff;color:var(--brand)">${esc(ini(d.nombre || 'Tu negocio'))}</div>`}<div class="g"><div class="b">${esc(d.nombre || 'Tu negocio')}</div><div class="xs" style="opacity:.85">${esc(S.TIPOS[d.tipo])}</div></div><span class="btn sm" style="background:#fff;color:#0F1420">Reservar</span></div></div>`;
+  const p2 = () => `<h1 class="in" style="font-size:30px;margin:22px 0 6px">Tus servicios y precios</h1><p class="mut in">Te pusimos una lista típica de ${esc(S.TIPOS[d.tipo].toLowerCase())}. Cambia nombres, minutos y precios a los tuyos (sin ITBMS), borra o agrega.</p>
+    <div class="col in2" style="margin-top:14px;gap:8px">${d.servicios.map((x, i) => `<div class="card flat" style="padding:10px"><div class="row"><input data-sv="${i}|nombre" value="${esc(x.nombre)}" placeholder="Servicio" style="padding:10px"><button class="ico" data-del="${i}" style="width:36px;height:36px">${ic('trash', 16)}</button></div>
+      <div class="grid" style="margin-top:8px;gap:8px;grid-template-columns:1.3fr 1fr 1fr"><input data-sv="${i}|cat" value="${esc(x.cat)}" placeholder="Categoría" style="padding:9px;font-size:13px"><div class="row" style="gap:4px"><input data-sv="${i}|dur" type="number" step="5" value="${x.dur}" style="padding:9px;font-size:13px"><span class="xs mut">min</span></div><div class="row" style="gap:4px"><span class="xs mut">$</span><input data-sv="${i}|precio" type="number" step="0.5" value="${x.precio}" style="padding:9px;font-size:13px"></div></div></div>`).join('')}</div>
+    <button class="btn ghost w" data-a="addsv" style="margin-top:10px">${ic('plus', 16)} Agregar servicio</button>`;
+  const p3 = () => `<h1 class="in" style="font-size:30px;margin:22px 0 6px">¿Quién atiende?</h1><p class="mut in">Nombres separados por coma. Cada uno tendrá su acceso con PIN y su propio precio si quieres.</p>
     <div class="field in2" style="margin-top:18px"><label>Equipo</label><input id="d-e" value="${esc(d.equipo)}" placeholder="Ej.: Carlos, Andrés, María"></div>
-    <label class="in3">Plan</label><div class="grid g2 in3">${['Esencial', 'Pro'].map(p => `<button class="card ${d.plan === p ? 'glass' : 'flat'}" data-plan="${p}" style="cursor:pointer;text-align:left;${d.plan === p ? 'border-color:var(--brand)' : ''}"><div class="b">${p}</div><div style="font-size:24px;font-weight:700">$${PRECIO[p]}<span class="xs mut">/mes</span></div><div class="xs mut">${p === 'Pro' ? 'IA en WhatsApp, depósitos, campañas, reportes' : 'App, recordatorios, caja y fidelidad'}</div></button>`).join('')}</div>
-    <p class="xs dim in4" style="margin-top:12px">Los servicios se cargan con una plantilla de ${esc(S.TIPOS[d.tipo])} que puedes editar en tu panel.</p>`;
-  const listo = t => {
+    <label class="in3">Plan de Glow</label><div class="col in3">${[['Esencial', 'App, recordatorios, caja, fidelidad, fila y TV'], ['Pro', 'Todo + IA en WhatsApp, depósitos, ofertas, regalos, paquetes, membresías y campañas'], ['Negocio', 'Todo + varias sucursales y profesionales ilimitados']].map(([p, x]) => `<button class="card ${d.plan === p ? 'glass' : 'flat'}" data-plan="${p}" style="cursor:pointer;text-align:left;${d.plan === p ? 'border:2px solid var(--brand)' : ''}"><div class="row sp"><div class="b">${p}</div><div style="font-size:22px;font-weight:800">$${PRECIO[p]}<span class="xs mut">/mes</span></div></div><div class="xs mut">${x}</div></button>`).join('')}</div>`;
+  const p4 = () => `<h1 class="in" style="font-size:30px;margin:22px 0 6px">Trae a tus clientes</h1><p class="mut in">Opcional: pega tu lista (de tu libreta, Excel o WhatsApp). Una persona por línea: <b>nombre, teléfono</b>. Así desde el día 1 tienes tu base para campañas.</p>
+    <textarea id="d-cl" rows="8" class="in2" style="margin-top:14px" placeholder="María Pérez, 6123-4567&#10;José Ríos, 6987-6543">${esc(d.clientes)}</textarea><input type="file" id="d-cf" accept=".csv,.txt" style="margin-top:10px">
+    <p class="xs dim">Puedes saltarte este paso y hacerlo luego en Clientes → Importar lista.</p>`;
+  const listo = (t, n) => {
     el.innerHTML = `<main class="wrap c" style="padding-top:50px"><div class="orb tilt in" style="width:200px"><div class="ring"></div><div class="core"></div><div class="glyph" style="font-size:44px">${esc(ini(t.nombre))}</div></div>
-      <h1 class="in2" style="font-size:34px">¡${esc(t.nombre)} ya tiene su app!</h1><p class="mut in2">Servicios, equipo y horario cargados. PIN del dueño: <b>${S.staff(t.id)[0]?.pin}</b></p>
+      <h1 class="in2" style="font-size:34px">¡${esc(t.nombre)} ya tiene su app!</h1><p class="mut in2">${S.services(t.id).length} servicios, ${S.staff(t.id).length} en el equipo${n ? ` y ${n} clientes importados` : ''}. PIN del dueño: <b>${S.staff(t.id)[0]?.pin}</b></p>
       <div class="col in3" style="margin-top:20px"><a class="btn w" href="#/s/${t.slug}">${ic('user', 18)} Ver la app de mis clientes</a><a class="btn ghost w" href="#/s/${t.slug}/panel">${ic('chart', 18)} Ir a mi panel</a><a class="btn ghost w" href="#/glow">Volver al panel Glow</a></div></main>`;
-    tilt(el); confetti([t.color2, t.color, '#fff']);
+    tilt(el); confetti([t.color2, t.color, '#0F1420']);
   };
-  const leer = () => { const v = k => $(k)?.value; if (paso === 0) { d.nombre = v('#d-n').trim(); d.zona = v('#d-z'); d.tel = v('#d-t'); } if (paso === 1) { d.color = v('#d-c'); d.color2 = v('#d-c2'); } if (paso === 2) d.equipo = v('#d-e'); };
+  const leer = () => { const v = k => $(k)?.value;
+    if (paso === 0) { d.nombre = (v('#d-n') || '').trim(); d.zona = v('#d-z') || ''; d.tel = v('#d-t') || ''; }
+    if (paso === 1) { d.color = v('#d-c') || d.color; d.color2 = v('#d-c2') || d.color2; }
+    if (paso === 2) $$('[data-sv]').forEach(i => { const [n, k] = i.dataset.sv.split('|'); d.servicios[+n][k] = ['dur', 'precio'].includes(k) ? +i.value || 0 : i.value; });
+    if (paso === 3) d.equipo = v('#d-e') || '';
+    if (paso === 4) d.clientes = v('#d-cl') || ''; };
+  const enlazar = () => {
+    const lf = $('#d-lf'), pf = $('#d-pf'), cf = $('#d-cf');
+    if (lf) lf.onchange = async e => { leer(); d.logo = await leerImagen(e.target.files[0], 400, .85); pinta(); };
+    if (pf) pf.onchange = async e => { leer(); d.portada = await leerImagen(e.target.files[0], 1400, .75); pinta(); };
+    if (cf) cf.onchange = async e => { const f = e.target.files[0]; if (f) $('#d-cl').value = await f.text(); };
+  };
   el.onclick = e => {
-    const x = e.target.closest('[data-a],[data-tipo],[data-pal],[data-plan]'); if (!x) return; vibrar(8); leer();
+    const x = e.target.closest('[data-a],[data-tipo],[data-pal],[data-plan],[data-del]'); if (!x) return; vibrar(8); leer();
     if (x.dataset.tipo) { d.tipo = x.dataset.tipo; return pinta(); }
     if (x.dataset.pal) { [d.color, d.color2] = PALETAS[+x.dataset.pal]; return pinta(); }
     if (x.dataset.plan) { d.plan = x.dataset.plan; return pinta(); }
+    if (x.dataset.del) { d.servicios.splice(+x.dataset.del, 1); return pinta(); }
+    if (x.dataset.a === 'addsv') { d.servicios.push({ cat: d.servicios[0]?.cat || 'Servicios', nombre: '', dur: 30, precio: 10 }); pinta(); $$('[data-sv$="|nombre"]').pop()?.focus(); return; }
     if (x.dataset.a === 'atras') { paso--; return pinta(); }
     if (x.dataset.a === 'sig') {
       if (paso === 0 && d.nombre.length < 2) return toast('Escribe el nombre del negocio', 'store');
-      if (paso < 2) { paso++; return pinta(); }
-      const eq = d.equipo.split(',').map(s => s.trim()).filter(Boolean);
-      const t = S.crearNegocio({ ...d, equipo: eq.length ? eq : ['Dueño'] }); listo(t);
+      if (paso === 2) { d.servicios = d.servicios.filter(z => z.nombre.trim()); if (!d.servicios.length) return toast('Agrega al menos un servicio', 'scissors'); }
+      if (paso < 4) { paso++; return pinta(); }
+      const eq = d.equipo.split(',').map(z => z.trim()).filter(Boolean);
+      try {
+        const t = S.crearNegocio({ ...d, equipo: eq.length ? eq : ['Dueño'], servicios: d.servicios });
+        if (d.logo || d.portada) S.saveTenant({ id: t.id, logo: d.logo, portada: d.portada });
+        let n = 0; d.clientes.split(/\r?\n/).map(l => l.split(/[,;\t]/).map(z => z.trim())).filter(l => l[0]).forEach(([nombre, tel = '']) => { S.guardar('clients', { tid: t.id, nombre, tel, email: '', cumple: '', notas: '', etiquetas: 'importado', creado: S.iso(new Date()), sellos: 0, premios: 0 }); n++; });
+        listo(S.tenant(t.id), n);
+      } catch (err) { toast('No se pudo guardar (fotos muy pesadas para la demo)', 'x'); }
     }
   };
   el.oninput = e => { if (e.target.id === 'd-c' || e.target.id === 'd-c2') { leer(); setBrand({ color: d.color, color2: d.color2 }); } };

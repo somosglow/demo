@@ -210,6 +210,7 @@ export function metricas(tid, desde, hasta) {
 }
 
 /* ---------- alta de negocio (onboarding) ---------- */
+export const plantilla = tipo => (PLANTILLAS[tipo] || PLANTILLAS.barberia).s.map(([cat, nombre, dur, precio]) => ({ cat, nombre, dur, precio }));
 const PLANTILLAS = {
   barberia: { cats: ['Cortes', 'Barba', 'Combos', 'Extras'], s: [['Cortes', 'Corte clásico', 30, 12], ['Cortes', 'Fade / degradado', 40, 15], ['Cortes', 'Corte niño', 30, 10], ['Barba', 'Perfilado de barba', 20, 8], ['Barba', 'Barba con toalla caliente', 30, 12], ['Combos', 'Corte + barba', 60, 22], ['Extras', 'Cejas', 10, 4], ['Extras', 'Mascarilla negra', 15, 8]] },
   unas: { cats: ['Manos', 'Pies', 'Sistemas', 'Extras'], s: [['Manos', 'Manicure', 40, 15], ['Manos', 'Manicure semipermanente', 60, 25], ['Pies', 'Pedicure spa', 60, 25], ['Sistemas', 'Acrílicas', 120, 45], ['Sistemas', 'Poligel', 100, 40], ['Sistemas', 'Retoque', 75, 30], ['Extras', 'Diseño por uña', 10, 2], ['Extras', 'Parafina', 15, 8]] },
