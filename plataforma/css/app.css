@@ -426,3 +426,32 @@ table.t{width:100%;border-collapse:collapse;font-size:13.5px}table.t th{text-ali
 .g-tap{position:absolute;bottom:40px;left:0;right:0;text-align:center;color:rgba(255,255,255,.7);opacity:0;transition:.4s}
 .gift-veil.listo:not(.abre) .g-tap{opacity:1;animation:latido 1.4s infinite}
 .fid.renueva{animation:renueva .8s var(--spring) both}@keyframes renueva{0%{transform:rotateY(90deg) scale(.9);opacity:0}100%{transform:none;opacity:1}}
+
+/* ===== panel del dueño: acabado premium ===== */
+.side{gap:1px;padding:14px 12px;background:linear-gradient(180deg,var(--surf),color-mix(in srgb,var(--brand) 3%,var(--surf)))}
+.side .logo{padding:6px 10px 12px!important}
+.side-biz{margin:0 2px 10px;padding:10px!important;border-radius:16px;background:var(--soft);border:1px solid color-mix(in srgb,var(--brand) 18%,transparent)}
+.side-g{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--dim);padding:14px 12px 6px}
+.side a{padding:9px 12px;font-size:13.5px;border-radius:12px}
+.side a.on{background:var(--grad)!important;color:var(--ink)!important;box-shadow:0 8px 20px -10px var(--brand)!important;font-weight:600}
+.side a.on svg{stroke:var(--ink)}
+.side a:not(.on):hover{transform:translateX(2px)}
+.main h1{letter-spacing:-.035em}
+/* tarjetas de números: limpias, con barra de color en lugar de manchas borrosas */
+.kpi::after{display:none}
+.kpi{border-radius:20px;padding:16px 18px;transition:transform .25s var(--ease),box-shadow .25s}
+.kpi::before{content:"";position:absolute;left:18px;top:0;width:28px;height:3px;border-radius:0 0 4px 4px;background:var(--grad)}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.kpi .v{font-variant-numeric:tabular-nums}
+.kpi .l{font-weight:500;letter-spacing:.01em}
+.card.flat{border-radius:22px}
+.main .card h3{font-size:16px}
+table.t tr:hover td{background:color-mix(in srgb,var(--brand) 4%,transparent)}
+/* TV en pantallas angostas */
+@media(max-width:900px){.tv .grid{grid-template-columns:1fr!important}.tv h1{font-size:26px!important}.tv .row.sp>div:last-child{font-size:40px!important}}
+.mvm-wrap{position:relative;margin-top:8px;padding-bottom:18px}.mvm-svg{margin-top:0!important}
+.mvm-y span{position:absolute;right:0;transform:translateY(-120%);font-size:10.5px;color:var(--dim)}
+.mvm-x span{position:absolute;bottom:0;transform:translateX(-50%);font-size:10.5px;color:var(--dim)}
+.mvm-svg .dot-hoy,.mvm-svg .dot-pulse{vector-effect:non-scaling-stroke}
+.mvm-svg{height:220px}.mvm-dot{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#fff;border:3px solid var(--brand);opacity:0;animation:aparece .3s 1.6s forwards,pulsoD 2s 1.9s infinite}
+@keyframes pulsoD{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--brand) 55%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
