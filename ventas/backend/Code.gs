@@ -73,6 +73,7 @@ function doGet(e) {
     return out({ ok: true, negocio: f.negocio, nombre: String(f.nombre).split(' ')[0], tipo: f.tipo, zona: f.zona, equipo: f.equipo, fecha: f.fecha, hora: f.hora, modo: f.modo,
       pago: cfg('PAGO_URL'), video: cfg('VIDEO_URL'), wa: cfg('WA_JUAN') });
   }
+  if (q.action === 'demo') return out(demoDatos(q.id));  // demo app/?id=…: solo datos públicos del negocio
   if (q.action === 'cupos') return out({ ok: true, tomados: filas().filter(x => x.estado === 'cliente').length });
   if (q.key !== cfg('CLAVE')) return out({ ok: false, error: 'clave' });
   return out({ ok: true, leads: filas(), config: { zoom: cfg('ZOOM'), topic: cfg('TOPIC'), estados: ESTADOS,
@@ -86,6 +87,7 @@ function doPost(e) {
     if (b.action === 'nuevo') return out(nuevo(b, b.key === cfg('CLAVE')));
     if (b.action === 'onboarding') return out(onboarding(b));
     if (b.action === 'chat') return out(chat(b));
+    if (b.action === 'evento') return out(evento(b));
     if (b.key !== cfg('CLAVE')) return out({ ok: false, error: 'clave' });
     if (b.action === 'actualizar') return out(actualizar(b));
     if (b.action === 'config') { ['ZOOM','PAGO_URL','VIDEO_URL','WA_JUAN','EMAILS','AUTO'].forEach(k => { if (b[k.toLowerCase()] != null) P().setProperty(k, corto(b[k.toLowerCase()], 400)); }); return out({ ok: true }); }
@@ -134,12 +136,13 @@ function nuevo(b, interno) {
 
 // Carga la lista de prospectos en frío: estado 'prospecto', sin avisos ni mensajes automáticos (Juan escribe a mano).
 function importar(b) {
-  const ya = new Set(filas().map(f => String(f.whatsapp).replace(/\D/g, '')));
+  const d8 = x => String(x || '').replace(/\D/g, '').slice(-8);   // mismo criterio que nuevo(): +507 6000-1111 = 6000-1111
+  const ya = new Set(filas().map(f => d8(f.whatsapp)).filter(Boolean));
   const ahora = new Date(); let n = 0, rep = 0;
   (b.filas || []).slice(0, 300).forEach(x => {
     const tel = corto(x.whatsapp, 20).replace(/[^\d+]/g, ''); const d = tel.replace(/\D/g, '');
     if (!corto(x.negocio).trim() || d.length < 7) return;
-    if (ya.has(d)) { rep++; return; } ya.add(d);
+    if (ya.has(d8(d))) { rep++; return; } ya.add(d8(d));
     const f = { id: Utilities.getUuid().slice(0, 8), creado: ahora, origen: corto(x.origen || 'lista', 30), nombre: corto(x.nombre, 80), negocio: corto(x.negocio, 80),
       tipo: corto(x.tipo, 30), zona: corto(x.zona, 80), whatsapp: tel, email: '', acepta: 'no', modo: '', equipo: '', fecha: '', hora: '',
       estado: 'prospecto', dueno: corto(x.dueno || 'Juan', 20), ultimo_toque: '', proximo_toque: corto(x.proximo_toque, 10), toques: 0,
@@ -169,10 +172,38 @@ function onboarding(b) {
   const ss = libro(); let sh = ss.getSheetByName('Onboarding');
   if (!sh) { sh = ss.insertSheet('Onboarding'); sh.appendRow(OB); sh.setFrozenRows(1); }
   const f = { fecha: new Date(), estado: 'por montar' }; OB.forEach(k => { if (k !== 'fecha' && k !== 'estado') f[k] = corto(b[k], 1500); });
-  sh.appendRow(OB.map(k => f[k] || ''));
+  sh.appendRow(OB.map(k => k === 'fecha' ? f[k] : seguro(f[k] || '')));   // nada del público se guarda como fórmula
   const L = filas().find(x => (f.lead && x.id === f.lead) || (String(x.negocio).toLowerCase() === String(f.negocio).toLowerCase()));
   if (L) set(L, 'notas', corto((L.notas ? L.notas + '\n' : '') + Utilities.formatDate(new Date(), TZ, 'dd/MM HH:mm') + ' Onboarding recibido ✅', 3000));
   avisar(`🎉 Onboarding listo: ${f.negocio}`, `Ya mandó sus datos (servicios, horario, equipo). Hay que montar su app.`, 'high', L ? L.id : '');
+  return { ok: true };
+}
+
+// ---------- demo instantánea (sistema/sitio/app) ----------
+// GET ?action=demo&id=<lead>: lo público para pintar la demo (servicios, equipo, horario, colores). Nunca WhatsApp, correo ni dirección.
+function demoDatos(id) {
+  id = corto(id, 20); if (!id) return { ok: false };
+  const L = filas().find(x => x.id === id);
+  const sh = libro().getSheetByName('Onboarding'); let o = null;
+  if (sh && sh.getLastRow() > 1) {
+    const v = sh.getDataRange().getValues(), h = v.shift(), c = k => h.indexOf(k);
+    const r = v.filter(x => String(x[c('lead')]) === id).pop();   // el último onboarding de ese lead
+    if (r) o = { servicios: r[c('servicios')], equipo: r[c('equipo')], horario: r[c('horario')], colores: r[c('colores')], eslogan: r[c('eslogan')], negocio: r[c('negocio')] };
+  }
+  if (!L && !o) return { ok: false };
+  const s = x => corto(x, 1500);
+  return { ok: true, onboarding: !!o, negocio: s((o && o.negocio) || (L && L.negocio)), tipo: s(L && L.tipo), zona: s(L && L.zona),
+    servicios: s(o && o.servicios), equipo: s(o && o.equipo), horario: s(o && o.horario), colores: s(o && o.colores), eslogan: s(o && o.eslogan) };
+}
+// POST {action:'evento', id, paso:'abrio'|'panel'|'quiero'}: mide hasta dónde llega el prospecto en la demo. Una vez por paso y lead.
+function evento(b) {
+  const paso = { abrio: 'abrió la demo', panel: 'llegó al panel del dueño', quiero: 'tocó "Quiero esto"' }[b.paso];
+  if (!paso) return { ok: false, error: 'paso' };
+  const f = filas().find(x => x.id === corto(b.id, 20)); if (!f) return { ok: false };
+  const k = 'demo_' + b.paso; if (enviados(f)[k]) return { ok: true, repetido: true };
+  marcar(f, k);
+  set(f, 'notas', corto((f.notas ? f.notas + '\n' : '') + Utilities.formatDate(new Date(), TZ, 'dd/MM HH:mm') + ' 📱 ' + paso, 3000));
+  if (b.paso !== 'abrio') avisar(`🔥 ${f.negocio} ${paso}`, 'Está probando su app ahora. Buen momento para escribirle.', b.paso === 'quiero' ? 'high' : 'default', f.id);
   return { ok: true };
 }
 

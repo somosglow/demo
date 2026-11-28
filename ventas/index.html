@@ -97,7 +97,7 @@ const nom=l=>(l.nombre||"").split(" ")[0]||"";
 function plantillas(l){
   const z=l.reunion||DATA.config.zoom||"";const cuando=l.fecha?`el ${fl(l.fecha)} a las ${h12(l.hora)}`:"";
   const modo=(l.modo||"").toLowerCase();
-  if(l.estado==="prospecto"){const demo=`${DEMO_LINK}app/?negocio=${encodeURIComponent(l.negocio||"")}&tipo=${encodeURIComponent(l.tipo||"")}&zona=${encodeURIComponent(l.zona||"")}`;return[
+  if(l.estado==="prospecto"){const demo=`${DEMO_LINK}app/?negocio=${encodeURIComponent(l.negocio||"")}&tipo=${encodeURIComponent(l.tipo||"")}&zona=${encodeURIComponent(l.zona||"")}&id=${encodeURIComponent(l.id||"")}`;return[
     ["👋 Primer mensaje",`Hola 👋 ¿hablo con el encargado de ${l.negocio}? Soy ${YO}, de Glow, aquí en Panamá. Ayudamos a ${(l.tipo||"negocios").toLowerCase().includes("barb")?"barberías":"salones"} a tener su propia app de citas: el cliente reserva solo, le llega su recordatorio y se acaban los plantones. Te armé un ejemplo con el nombre de ${l.negocio}, pruébalo aquí 👉 ${demo} ¿Te muestro en 10 minutos cómo quedaría la tuya?`],
     ["💬 Seguimiento (2–3 días)",`Hola de nuevo 👋 ¿Pudiste ver la app de ejemplo de ${l.negocio}? Si quieres te la muestro en una llamada corta, o agenda tú mismo aquí 👉 ${DEMO_LINK}?o=juan&negocio=${encodeURIComponent(l.negocio||"")}`],
     ["👋 Último mensaje",`Hola, no te quiero llenar de mensajes 🙏 Si más adelante quieres tu propia app de citas para ${l.negocio}, aquí estamos. ¡Mucho éxito!`]];}

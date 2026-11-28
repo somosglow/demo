@@ -51,7 +51,7 @@ async function responder(t){add(t,"me");H.push({role:"user",content:t});const w=
  w.remove();add(r,"bot");H.push({role:"assistant",content:r.replace(/<[^>]+>/g,"")})}
 const Q=["💰 ¿Cuánto cuesta?","📲 ¿Qué incluye?","🚀 Precio de fundador","📅 Quiero una demo","💜 Plan Pro"];
 $("gx-q").innerHTML=Q.map(q=>`<button>${q}</button>`).join("");$("gx-q").querySelectorAll("button").forEach(b=>b.onclick=()=>{responder(b.textContent.replace(/^\S+\s/,""))});
-function abrir(){$("gx").classList.add("on");$("gx-tip").remove?.();if(!M.children.length)add(`¡Hola! 👋 Soy el asistente virtual de Glow${neg?", aquí para ayudarte con la app de <b>"+esc(neg)+"</b>":""}. Pregúntame lo que quieras sobre precios, cómo funciona o cómo agendar tu demo gratis.`,"bot");setTimeout(()=>$("gx-i").focus(),200)}
+function abrir(){$("gx").classList.add("on");$("gx-tip")?.remove();if(!M.children.length)add(`¡Hola! 👋 Soy el asistente virtual de Glow${neg?", aquí para ayudarte con la app de <b>"+esc(neg)+"</b>":""}. Pregúntame lo que quieras sobre precios, cómo funciona o cómo agendar tu demo gratis.`,"bot");setTimeout(()=>$("gx-i").focus(),200)}
 function cerrar(){$("gx").classList.remove("on")}
 $("gx-btn").onclick=()=>$("gx").classList.contains("on")?cerrar():abrir();$("gx-x").onclick=cerrar;
 $("gx-f").onsubmit=e=>{e.preventDefault();const t=$("gx-i").value.trim();if(!t)return;$("gx-i").value="";responder(t)};
