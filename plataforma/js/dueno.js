@@ -2,8 +2,8 @@ import * as S from './store.js';
 import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, MESES_L, toast, sheet, closeSheet, tilt, setBrand, vibrar, contar, wa, confetti, leerImagen, estrellas, avatar , pickerEstilos, ESTILOS , tarjetaFid } from './ui.js';
 import qrcode from '../vendor/qrcode.mjs';
 
-const BASICO = ['inicio', 'agenda', 'caja', 'clientes', 'catalogo', 'ajustes'];
-const SECC = [['inicio', 'home', 'Inicio'], ['agenda', 'cal', 'Agenda'], ['fila', 'users', 'Fila sin cita'], ['caja', 'cash', 'Caja'], ['clientes', 'heart', 'Clientes'], ['catalogo', 'scissors', 'Servicios y productos'], ['promos', 'gift', 'Ofertas y regalos'], ['marketing', 'spark', 'Marketing'], ['mensajes', 'bell', 'Mensajes'], ['reportes', 'chart', 'Reportes'], ['equipo', 'user', 'Equipo'], ['ajustes', 'gear', 'Ajustes']];
+const BASICO = ['inicio', 'vivo', 'agenda', 'caja', 'clientes', 'catalogo', 'ajustes'];
+const SECC = [['inicio', 'home', 'Inicio'], ['vivo', 'bolt', 'Día a día'], ['agenda', 'cal', 'Agenda'], ['fila', 'users', 'Fila sin cita'], ['caja', 'cash', 'Caja'], ['clientes', 'heart', 'Clientes'], ['catalogo', 'scissors', 'Servicios y productos'], ['promos', 'gift', 'Ofertas y regalos'], ['marketing', 'spark', 'Marketing'], ['mensajes', 'bell', 'Mensajes'], ['reportes', 'chart', 'Reportes'], ['equipo', 'user', 'Equipo'], ['ajustes', 'gear', 'Ajustes']];
 const METODOS = ['Yappy', 'Tarjeta', 'Efectivo', 'Transferencia'];
 
 export function render(el, [slug, sec = 'inicio']) {
@@ -11,7 +11,7 @@ export function render(el, [slug, sec = 'inicio']) {
   const tid = t0.id; const T = () => S.tenant(tid);
   setBrand(t0); document.title = t0.nombre + ' · Panel';
   const key = 'glow.dueno.' + tid;
-  const st = { dia: S.ymd(new Date()), q: '', seg: 'todos', tab: 'servicios', ptab: 'vendibles', per: 'mes', suc: 'todas' };
+  const st = { vdia: S.ymd(new Date()), dia: S.ymd(new Date()), q: '', seg: 'todos', tab: 'servicios', ptab: 'vendibles', per: 'mes', suc: 'todas' };
   S.procesarAvisos(tid);
 
   function gate() {
@@ -40,6 +40,57 @@ export function render(el, [slug, sec = 'inicio']) {
   const tabs = (lista, act, attr) => `<div class="seg in" style="margin-bottom:16px;flex-wrap:wrap">${lista.map(([k, l]) => `<button class="${act === k ? 'on' : ''}" data-${attr}="${k}">${l}</button>`).join('')}</div>`;
   const cuenta = arr => Object.entries(arr.reduce((o, k) => (o[k] = (o[k] || 0) + 1, o), {})).sort((a, b) => b[1] - a[1]);
   const csv = (nombre, filas) => { const txt = filas.map(r => r.map(x => `"${String(x ?? '').replace(/"/g, '""')}"`).join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/csv' })); a.download = nombre + '.csv'; a.click(); toast('Archivo descargado', 'copy'); };
+
+  /* ================= DÍA A DÍA (en vivo hoy, y cualquier día anterior) ================= */
+  function eventosDel(d) {
+    const ev = []; const add = (t, ic0, col, tit, sub, monto = 0, ref = '') => ev.push({ t, ic: ic0, col, tit, sub, monto, ref });
+    const nom = cid => esc(S.client(cid)?.nombre || 'Cliente'); const pro = id => esc(S.member(id)?.nombre || '');
+    const svc = b => esc(b.items.map(i => S.service(i)?.nombre).filter(Boolean).join(' + '));
+    S.sales(tid).filter(v => v.fecha.startsWith(d)).forEach(v => add(v.fecha, 'cash', 'ok', `Cobro de ${S.money(v.cobrado)}`, `${nom(v.cid)} · ${esc(v.metodo)}${v.staffId ? ' · con ' + pro(v.staffId) : ''}${v.propina ? ' · propina ' + S.money(v.propina) : ''}`, v.cobrado, v.bid ? 'b:' + v.bid : ''));
+    S.bookings(tid).forEach(b => {
+      if (b.creado?.startsWith(d) && b.creado.slice(11, 16) !== '00:00') add(b.creado, 'cal', 'br', b.origen === 'app' ? 'Nueva reserva por la app' : b.origen === 'sin cita' ? 'Cliente sin cita' : 'Cita agendada', `${nom(b.cid)} · ${svc(b)} · ${b.inicio.slice(0, 10) === d ? 'hoy' : b.inicio.slice(8, 10) + '/' + b.inicio.slice(5, 7)} ${h12(b.inicio.slice(11))} con ${pro(b.staffId)}${b.bienvenida ? ' · 🎁 sellos de regalo' : ''}`, 0, 'b:' + b.id);
+      if (!b.inicio.startsWith(d)) return; const ini0 = S.parse(b.inicio);
+      if (['llegó', 'en curso', 'completada'].includes(b.estado) && (b.t_llegó || b.estado !== 'completada')) add(b.t_llegó || b.inicio, 'check', 'ok', 'Llegó', `${nom(b.cid)} · cita de ${h12(b.inicio.slice(11))} con ${pro(b.staffId)}`, 0, 'b:' + b.id);
+      if (b.estado === 'en curso') add(b.t_en_curso || b['t_en curso'] || b.inicio, 'scissors', 'br', 'En silla ahora', `${nom(b.cid)} · ${svc(b)} con ${pro(b.staffId)}`, 0, 'b:' + b.id);
+      if (b.estado === 'no-show') add(b['t_no-show'] || S.iso(new Date(ini0.getTime() + 15 * 60000)), 'x', 'bad', 'No vino', `${nom(b.cid)} · ${h12(b.inicio.slice(11))} con ${pro(b.staffId)}`, 0, 'b:' + b.id);
+      if (b.estado === 'cancelada') add(b.t_cancelada || b.inicio, 'x', 'mut', 'Cita cancelada', `${nom(b.cid)} · ${h12(b.inicio.slice(11))}${b.nota ? ' · ' + esc(b.nota) : ''}`, 0, 'b:' + b.id);
+    });
+    S.vouchers(tid).forEach(v => { if (v.creado.startsWith(d)) add(v.creado, 'gift', 'br', `Promo vendida · ${S.money(v.precio)}`, `${nom(v.cid)} · ${esc(S.promo(v.pid)?.titulo || '')} · ${v.codigo}`, v.precio); if (v.canjeado?.startsWith(d)) add(v.canjeado, 'qr', 'ok', 'Cupón canjeado', `${nom(v.cid)} · ${esc(S.promo(v.pid)?.titulo || '')}`); });
+    S.queue(tid).filter(q => q.creado.startsWith(d)).forEach(q => add(q.creado, 'users', 'warn', `Turno #${q.numero} sin cita`, `${esc(q.nombre)} · ${esc(S.service(q.servicio)?.nombre || '')}${q.staffId ? ' · con ' + pro(q.staffId) : ''}`));
+    S.reviews(tid).filter(r => r.fecha?.startsWith(d)).forEach(r => add(r.fecha, 'star', 'warn', `Reseña ${'★'.repeat(r.estrellas)}`, `${nom(r.cid)}: "${esc(r.texto)}"`));
+    S.clients(tid).filter(c => c.creado?.startsWith(d)).forEach(c => add(c.creado, 'user', 'br', 'Cliente nuevo', esc(c.nombre)));
+    S.giftcards(tid).filter(g => g.creado?.startsWith(d)).forEach(g => add(g.creado, 'gift', 'ok', `Tarjeta de regalo · ${S.money(g.monto)}`, `De ${esc(g.de)} para ${esc(g.para)}`, g.monto));
+    const ahora = S.iso(new Date()); return ev.filter(e => e.t <= ahora).sort((a, b) => b.t.localeCompare(a.t));
+  }
+  function vivo() {
+    const t = T(); const hoy = S.ymd(new Date()); const d = st.vdia; const esHoy = d === hoy; const f = S.parse(d + 'T00:00');
+    const man = S.ymd(S.addDays(f, 1)); const m = S.metricas(tid, d, man); const sem = S.ymd(S.addDays(f, -7)); const mS = S.metricas(tid, sem, S.ymd(S.addDays(f, -6)));
+    const vs = S.sales(tid).filter(v => v.fecha.startsWith(d)); const cob = vs.reduce((a, v) => a + v.cobrado, 0), prop = vs.reduce((a, v) => a + (v.propina || 0), 0);
+    const bs = S.bookings(tid).filter(b => b.inicio.startsWith(d) && b.estado !== 'cancelada'); const ns = bs.filter(b => b.estado === 'no-show').length; const nuevos = S.clients(tid).filter(c => c.creado?.startsWith(d)).length;
+    const ev = eventosDel(d); const horas = Array.from({ length: 14 }, (_, i) => i + 8); const porH = horas.map(h => vs.filter(v => +v.fecha.slice(11, 13) === h).reduce((a, v) => a + v.sub, 0)); const mxH = Math.max(1, ...porH);
+    const hAhora = new Date().getHours();
+    const ms = S.staff(tid).map(x => [x, vs.filter(v => v.staffId === x.id).reduce((a, v) => a + v.sub, 0), bs.filter(b => b.staffId === x.id && b.estado === 'completada').length]).sort((a, b) => b[1] - a[1]); const mxM = Math.max(1, ...ms.map(x => x[1]));
+    const cmp = (a, b) => { if (!b) return ''; const p = Math.round((a - b) / b * 100); return `<span class="cmp ${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '▲' : '▼'} ${Math.abs(p)}%</span>`; };
+    const dias = Array.from({ length: 14 }, (_, i) => S.addDays(new Date(), -i));
+    const DS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+    layout(`${head(esHoy ? '<span class="live-dot"></span> Hoy en vivo' : 'Así fue el ' + fechaL(f).toLowerCase(), esHoy ? 'Todo lo que pasa en tu negocio, al instante: reservas, llegadas, cobros, promos y reseñas.' : 'Revisa cualquier día: lo que se vendió, quién vino y qué pasó, minuto a minuto.', `<button class="ico" data-vd="-1">${ic('back')}</button><input type="date" id="v-d" value="${d}" max="${hoy}" style="width:auto"><button class="ico" data-vd="1" ${esHoy ? 'disabled style="opacity:.35"' : ''}>${ic('next')}</button>${esHoy ? '' : `<button class="btn sm" data-vd="0">Hoy</button>`}`)}
+      <div class="scroll-x dias-v in" style="margin:-6px -18px 14px">${dias.map(x => { const k = S.ymd(x); const tot = S.sales(tid).filter(v => v.fecha.startsWith(k)).reduce((a, v) => a + v.sub, 0); return `<button class="dv ${k === d ? 'on' : ''}" data-vk="${k}"><small>${k === hoy ? 'hoy' : DS[x.getDay()]}</small><b>${x.getDate()}</b><span>${tot ? '$' + Math.round(tot) : '—'}</span></button>`; }).join('')}</div>
+      <div class="grid g4 stagger">
+        <div class="kpi"><div class="l">Cobrado ${esHoy ? 'hoy' : 'ese día'}</div><div class="v grad-t" data-n="${cob}" data-pre="$" data-dec="2">0</div><div class="xs mut">${cmp(m.ingresos, mS.ingresos)} vs el ${DS[f.getDay()]} anterior</div></div>
+        <div class="kpi"><div class="l">Citas</div><div class="v">${bs.length}</div><div class="xs mut">${m.completadas} atendidas${esHoy ? ' · ' + bs.filter(b => ['confirmada', 'llegó', 'en curso'].includes(b.estado)).length + ' por atender' : ''}</div></div>
+        <div class="kpi"><div class="l">Ticket promedio</div><div class="v">${S.money(m.completadas ? m.ingresos / m.completadas : 0)}</div><div class="xs mut">propinas ${S.money(prop)}</div></div>
+        <div class="kpi"><div class="l">No vinieron</div><div class="v" style="${ns ? 'color:var(--bad)' : ''}">${ns}</div><div class="xs mut">${nuevos} cliente${nuevos === 1 ? '' : 's'} nuevo${nuevos === 1 ? '' : 's'}</div></div>
+      </div>
+      <div class="grid rsp" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);margin-top:12px;align-items:start">
+        <div class="card flat in2"><div class="row sp"><h3>${esHoy ? 'Lo que está pasando' : 'Lo que pasó'}</h3><span class="pill">${ev.length} movimientos</span></div>
+          <div class="feed">${ev.length ? ev.map((e, i) => `<div class="fe ${i === 0 && esHoy ? 'nuevo' : ''}" ${e.ref ? `data-fe="${e.ref}"` : ''}><div class="fe-t">${h12(e.t.slice(11, 16))}</div><div class="fe-i ${e.col}">${ic(e.ic, 16)}</div><div class="g"><div class="b sm">${e.tit}</div><div class="xs mut">${e.sub}</div></div>${e.monto ? `<b class="sm" style="color:var(--ok)">+${S.money(e.monto)}</b>` : ''}</div>`).join('') : `<div class="empty">${esHoy ? 'Todavía no hay movimientos hoy. Aquí verás todo en cuanto pase.' : 'No hubo movimientos ese día.'}</div>`}</div></div>
+        <div class="col" style="gap:12px">
+          <div class="card flat in3"><h3>Ventas por hora</h3><div class="bars hh" style="height:130px">${horas.map((h, i) => `<div class="bw"><div class="bar ${esHoy && h === hAhora ? 'hoy' : ''}" style="height:${porH[i] / mxH * 100}%;animation-delay:${i * .04}s" title="${S.money(porH[i])}"></div><small>${h > 12 ? h - 12 : h}</small></div>`).join('')}</div><div class="xs mut" style="margin-top:6px">${porH.some(Boolean) ? 'Hora más fuerte: ' + h12(String(horas[porH.indexOf(Math.max(...porH))]) + ':00') : 'Sin ventas'}</div></div>
+          <div class="card flat in3"><h3>Tu equipo ${esHoy ? 'hoy' : 'ese día'}</h3>${ms.map(([x, v, n]) => `<div class="li">${avatar(x, 'r', 'width:34px;height:34px;font-size:12px')}<div class="g"><div class="row sp"><span class="b sm">${esc(x.nombre)}</span><b class="sm">${S.money(v)}</b></div><div style="height:6px;border-radius:9px;background:var(--card2);margin-top:5px;overflow:hidden"><div style="height:100%;width:${v / mxM * 100}%;background:${x.color};border-radius:9px;animation:grow 1s var(--ease) both;transform-origin:left"></div></div><div class="xs mut" style="margin-top:3px">${n} atendido${n === 1 ? '' : 's'}</div></div></div>`).join('')}</div>
+          <div class="card flat in4"><h3>Por método de pago</h3>${METODOS.map(k => { const v = vs.filter(x => x.metodo === k).reduce((a, x) => a + x.cobrado, 0); return `<div class="stat-line"><span class="mut">${k}</span><b>${S.money(v)}</b></div>`; }).join('')}</div>
+        </div></div>`);
+    const di = $('#v-d', el); if (di) di.onchange = () => { if (di.value) { st.vdia = di.value > hoy ? hoy : di.value; vivo(); } };
+  }
 
   /* ================= INICIO ================= */
   /* primeros pasos: guía al dueño nuevo hasta tener su negocio listo */
@@ -106,7 +157,7 @@ export function render(el, [slug, sec = 'inicio']) {
       bajo.length && [`📦 ${bajo.length} producto${bajo.length > 1 ? 's' : ''} por agotarse`, bajo.map(p => p.nombre).join(', '), 'catalogo'],
       S.waitlist(tid).length && [`🔔 ${S.waitlist(tid).length} en lista de espera`, 'Avísales si se libera un espacio', 'marketing'],
     ].filter(Boolean);
-    layout(`${head(`${sal} ✦`, fechaL(new Date()) + ' · ' + esc(t.nombre), `<a class="btn ghost sm" href="#/s/${t.slug}" target="_blank">${ic('link', 16)} Mi app</a><button class="btn sm" data-a="compartir">${ic('qr', 16)} Compartir link</button>`)}
+    layout(`${head(`${sal} ✦`, fechaL(new Date()) + ' · ' + esc(t.nombre), `<a class="btn ghost sm" href="#/s/${t.slug}/panel/vivo"><span class="live-dot"></span> En vivo</a><a class="btn ghost sm" href="#/s/${t.slug}" target="_blank">${ic('link', 16)} Mi app</a><button class="btn sm" data-a="compartir">${ic('qr', 16)} Compartir link</button>`)}
       ${pasos(t)}
       ${alertas.length ? `<div class="scroll-x in" style="margin:0 -18px 12px;padding-bottom:4px">${alertas.map(([a, b, s]) => `<a class="card flat" href="#/s/${t.slug}/panel/${s}" style="min-width:240px;text-decoration:none;border-left:3px solid var(--brand)"><div class="b sm">${a}</div><div class="xs mut">${esc(b)}</div></a>`).join('')}</div>` : ''}
       <div class="grid g4 stagger">
@@ -596,11 +647,14 @@ export function render(el, [slug, sec = 'inicio']) {
     $('#x-ok').onclick = () => { const m = +$('#x-m').value; if (!$('#x-c').value.trim() || !m) return toast('Completa concepto y monto', 'x'); S.guardar('expenses', { tid, concepto: $('#x-c').value.trim(), monto: m, cat: $('#x-k').value, fecha: $('#x-f').value }); closeSheet(); toast('Gasto registrado'); };
   }
 
-  const vistas = { inicio, agenda, fila, caja, clientes, catalogo, promos, marketing, mensajes, reportes, equipo, ajustes };
+  const vistas = { inicio, vivo, agenda, fila, caja, clientes, catalogo, promos, marketing, mensajes, reportes, equipo, ajustes };
   function pintar() { (vistas[sec] || inicio)(); el.onclick = onClick; }
   function onClick(e) {
-    const x = e.target.closest('[data-est],[data-a],[data-nav],[data-dd],[data-b],[data-slot],[data-cob],[data-c],[data-seg],[data-s],[data-m],[data-tab],[data-ptab],[data-per],[data-xe],[data-p],[data-k],[data-mb],[data-of],[data-cu],[data-qok],[data-pv]'); if (!x) return;
+    const x = e.target.closest('[data-vd],[data-vk],[data-fe],[data-est],[data-a],[data-nav],[data-dd],[data-b],[data-slot],[data-cob],[data-c],[data-seg],[data-s],[data-m],[data-tab],[data-ptab],[data-per],[data-xe],[data-p],[data-k],[data-mb],[data-of],[data-cu],[data-qok],[data-pv]'); if (!x) return;
     if (x.closest('.ev[data-b]')) return;
+    if (x.dataset.vd !== undefined) { const hoy = S.ymd(new Date()); st.vdia = x.dataset.vd === '0' ? hoy : S.ymd(S.addDays(S.parse(st.vdia + 'T00:00'), +x.dataset.vd)); if (st.vdia > hoy) st.vdia = hoy; return vivo(); }
+    if (x.dataset.vk) { st.vdia = x.dataset.vk; return vivo(); }
+    if (x.dataset.fe) { const [k, id] = x.dataset.fe.split(':'); if (k === 'b' && S.booking(id)) return cita(id); return; }
     if (x.dataset.est) { S.guardar('tenants', { id: tid, estilo: x.dataset.est }); toast('Estilo: ' + ESTILOS[x.dataset.est].n + ' ✦', 'spark'); return ajustes(); }
     vibrar(8); const d = x.dataset;
     if (d.nav) { if (d.nav === 'mas') return mas(); location.hash = `#/s/${T().slug}/panel/${d.nav}`; return; }

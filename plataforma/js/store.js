@@ -141,7 +141,7 @@ function codigo(t) { return (t.nombre.match(/\b\w/g) || ['G']).join('').slice(0,
 
 export function estado(bid, estado, extra = {}) {
   const b = booking(bid); if (!b) return;
-  put('bookings', { id: bid, estado, ...extra });
+  put('bookings', { id: bid, estado, ['t_' + estado]: iso(new Date()), ...extra });
   if (estado === 'completada' && b.estado !== 'completada') {
     const c = client(b.cid); const t = tenant(b.tid);
     if (c) put('clients', { id: c.id, sellos: ((c.sellos || 0) + 1) % (t.fidelidad?.meta || 10) === 0 ? 0 : (c.sellos || 0) + 1, premios: ((c.sellos || 0) + 1) % (t.fidelidad?.meta || 10) === 0 ? (c.premios || 0) + 1 : (c.premios || 0) });
