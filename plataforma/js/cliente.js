@@ -1,5 +1,5 @@
 import * as S from './store.js';
-import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, toast, sheet, closeSheet, confetti, tilt, setBrand, vibrar, ics, wa, estrellas, avatar } from './ui.js';
+import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, toast, sheet, closeSheet, confetti, tilt, setBrand, vibrar, ics, wa, estrellas, avatar , tarjetaFid, selloHtml } from './ui.js';
 import qrcode from '../vendor/qrcode.mjs';
 
 const PAISES = [['507', '🇵🇦'], ['1', '🇺🇸'], ['57', '🇨🇴'], ['58', '🇻🇪'], ['506', '🇨🇷'], ['52', '🇲🇽'], ['593', '🇪🇨'], ['51', '🇵🇪'], ['34', '🇪🇸'], ['53', '🇨🇺'], ['505', '🇳🇮'], ['54', '🇦🇷']];
@@ -111,6 +111,7 @@ export function render(el, [slug]) {
       </div>
       <div style="margin-top:26px" id="equipo"><h2>${L('Nuestro equipo')}</h2><div class="scroll-x" style="margin-top:12px"><div class="card flat c" style="min-width:160px;cursor:pointer" data-cual="1"><div class="av lg r" style="margin:0 auto;--c:var(--grad)">${ic('bolt', 26)}</div><div class="b" style="margin-top:10px">Cualquiera</div><div class="xs mut">El más pronto</div><span class="btn sm" style="margin-top:10px">Reservar</span></div>${prosSuc().map(m => { const r = rating(m.id); return `<div class="card tilt c" style="min-width:170px;cursor:pointer" data-verpro="${m.id}"><div class="pop">${avatar(m, 'lg r', 'margin:0 auto')}<div class="b" style="margin-top:10px">${esc(m.nombre)}</div><div class="xs mut">${esc(m.rol.split('·')[0])}</div>${r ? `<div class="xs" style="margin-top:4px">${estrellas(+r[0], 12)} <span class="mut">${r[0]}</span></div>` : ''}<span class="btn ghost sm" style="margin-top:10px">Ver perfil</span></div></div>`; }).join('')}</div></div>
       <div class="card glass" style="margin-top:22px"><div class="row sp"><div><div class="xs mut">Programa de fidelidad</div><h3>${esc(t.fidelidad?.premio || 'Premio')} al completar ${t.fidelidad?.meta || 10} visitas</h3></div><div style="font-size:30px">🎁</div></div>
+        ${(t.fidelidad?.regalo ?? 2) > 0 && !miCliente()?.bienvenida ? `<div class="pill br" style="margin-top:8px">🎁 ${t.fidelidad?.regalo ?? 2} sellos de regalo en tu primera reserva</div>` : ''}<div class="row" style="gap:6px;margin-top:10px">${Array.from({ length: Math.min(5, t.fidelidad?.meta || 10) }, (_, i) => `<div class="fs ${i < 2 ? 'on' : ''}" style="width:34px;color:var(--mut);--sc:${t.color}">${i < 2 ? selloHtml(t) : ''}</div>`).join('')}<span class="xs mut">…</span></div>
         <div class="grid g2" style="margin-top:10px"><div class="sm"><b>Cómo ganas:</b> 1 sello por cada visita.</div><div class="sm"><b>Cómo canjeas:</b> al llenar tu tarjeta, tu premio se aplica solo en tu próxima cita.</div></div>
         <div class="row" style="margin-top:12px"><button class="btn sm g" data-a="tarjeta">${ic('gift', 15)} Ver mi tarjeta</button><button class="btn dark sm g" data-a="wallet"> Apple Wallet</button></div></div>
       ${mem.length ? `<div style="margin-top:24px"><h2>${L('Membresías')}</h2><p class="mut sm" style="margin:4px 0 12px">Paga al mes y ven cuando quieras. Cancela cuando quieras.</p><div class="scroll-x">${mem.map((m, i) => `<div class="card ${i === 1 ? 'glass' : 'flat'}" style="min-width:230px"><div class="row sp"><div class="b">${esc(m.nombre)}</div>${i === 1 ? '<span class="pill br">Popular</span>' : ''}</div><div style="font-size:28px;font-weight:800;margin:6px 0">${S.money(m.precio)}<span class="xs mut">/mes</span></div><div class="sm mut">${esc(m.incluye)}</div><button class="btn sm w" style="margin-top:12px" data-mem="${m.id}">Quiero esta</button></div>`).join('')}</div></div>` : ''}
@@ -248,11 +249,10 @@ export function render(el, [slug]) {
     shell(`<section class="c" style="padding-top:22px">
       <div class="ico in" style="margin:0 auto;width:72px;height:72px;border-radius:24px;background:var(--grad);color:var(--ink);border:0;box-shadow:0 20px 50px -16px var(--brand)">${ic('check', 36)}</div>
       <h1 class="in2" style="font-size:32px;margin-top:14px">¡Listo, ${esc(c.nombre.split(' ')[0])}!</h1><p class="mut in2">Tu cita quedó confirmada. Te llegará un recordatorio.</p></section>
+      ${b.bienvenida ? `<div class="in3" style="margin-top:16px"><div class="reg-banner" style="margin-bottom:10px"><span style="font-size:30px">🎁</span><div><div class="b">¡Bienvenido! Te regalamos ${b.bienvenida} sellos</div><div class="xs mut">Por ser tu primera reserva en ${esc(t.nombre)} con Glow. Ya vas avanzando hacia ${esc(t.fidelidad?.premio || 'tu premio')}.</div></div></div>${tarjetaFid(t, { nombre: c.nombre, n: c.sellos || 0, regalo: Math.min(c.sellos || 0, b.bienvenida) })}</div>` : ''}
       ${pase(b)}
       <div class="grid g2 in4" style="margin-top:12px"><button class="btn ghost sm" data-a="ics" data-b="${b.id}">${ic('cal', 16)} A mi calendario</button><a class="btn ghost sm" target="_blank" href="${wa('', `Reservé en ${t.nombre} ✨ ${location.href.split('#')[0]}#/s/${t.slug}`)}">${ic('wa', 16)} Compartir</a></div>
-      <div class="card flat in4" style="margin-top:14px"><div class="row sp"><h3>${ic('gift', 18)} Tu tarjeta de sellos</h3><span class="xs mut">${c.sellos || 0}/${meta}</span></div>
-        <div class="stamps" style="margin-top:12px">${Array.from({ length: meta }, (_, i) => `<div class="stamp ${i < (c.sellos || 0) ? 'on' : ''}" style="animation-delay:${i * .05}s">${i < (c.sellos || 0) ? '✦' : i === meta - 1 ? '🎁' : ''}</div>`).join('')}</div>
-        <p class="xs mut" style="margin:10px 0 0">Al completar ${meta} visitas: ${esc(t.fidelidad?.premio || 'premio')}.</p></div>
+      ${b.bienvenida ? '' : `<div class="in4" style="margin-top:14px">${tarjetaFid(t, { nombre: c.nombre, n: c.sellos || 0 })}</div>`}
       <button class="btn w in4" style="margin-top:16px" data-a="inicio">Volver al inicio</button>`, '', false);
     confetti([t.color2, t.color, '#0F1420']);
   }
@@ -363,9 +363,10 @@ export function render(el, [slug]) {
   /* ================= TARJETA DE FIDELIDAD + WALLET ================= */
   function tarjeta() {
     const c = miCliente(); const t = T(); const meta = t.fidelidad?.meta || 10; const n = c?.sellos || 0;
-    sheet(`<div class="pass tilt"><div class="hd pop" style="padding:22px"><div class="row sp"><span class="b">${esc(t.nombre)}</span><span style="font-size:22px">🎁</span></div><div class="xs" style="opacity:.9;margin-top:14px">TARJETA DE FIDELIDAD</div><div style="font-size:26px;font-weight:800">${c ? esc(c.nombre) : 'Tu nombre aquí'}</div></div>
-      <div style="padding:18px"><div class="stamps">${Array.from({ length: meta }, (_, i) => `<div class="stamp ${i < n ? 'on' : ''}" style="animation-delay:${i * .05}s">${i < n ? '✦' : i === meta - 1 ? '🎁' : ''}</div>`).join('')}</div><div class="row sp" style="margin-top:12px"><span class="sm">${n}/${meta} sellos</span><span class="sm b">${meta - n} para ${esc(t.fidelidad?.premio || 'tu premio')}</span></div>
-      ${c ? `<div class="qr" style="margin:14px auto 0;border:1px solid var(--line)">${qrSvg('GLOW-FID-' + c.id, 120)}</div><div class="xs mut c">Muéstralo en caja para sumar tu sello</div>` : '<p class="sm mut c">Reserva tu primera cita para activar tu tarjeta.</p>'}</div></div>
+    const reg = c?.bienvenida ? Math.min(n, t.fidelidad?.regalo ?? 2) : 0;
+    sheet(`<div class="tilt">${tarjetaFid(t, { nombre: c ? c.nombre : 'Tu nombre aquí', n: c ? n : 0, regalo: reg, qr: c ? `<div class="c" style="margin-top:14px"><div class="qr" style="padding:8px">${qrSvg('GLOW-FID-' + c.id, 110)}</div><div class="xs" style="opacity:.85;margin-top:6px">Muéstralo en caja para sumar tu sello</div></div>` : '' })}</div>
+      ${!c && (t.fidelidad?.regalo ?? 2) > 0 ? `<div class="reg-banner" style="margin-top:12px"><span style="font-size:28px">🎁</span><div class="sm"><b>Te regalamos ${t.fidelidad?.regalo ?? 2} sellos</b> en tu primera reserva desde la app.</div></div>` : ''}
+      <p class="xs mut c" style="margin:10px 0 0">Cómo ganas: 1 sello por visita. Al llenarla, tu premio (${esc(t.fidelidad?.premio || 'premio')}) se aplica solo.</p>
       <div class="grid g2" style="margin-top:12px"><button class="btn dark" data-w> Apple Wallet</button><button class="btn ghost" data-gw>Google Wallet</button></div>`);
     tilt(document.querySelector('.sheet')); $('.sheet [data-w]').onclick = wallet; $('.sheet [data-gw]').onclick = wallet;
   }

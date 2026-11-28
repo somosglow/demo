@@ -1,5 +1,5 @@
 import * as S from './store.js';
-import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, MESES_L, toast, sheet, closeSheet, tilt, setBrand, vibrar, contar, wa, confetti, leerImagen, estrellas, avatar , pickerEstilos, ESTILOS } from './ui.js';
+import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, MESES_L, toast, sheet, closeSheet, tilt, setBrand, vibrar, contar, wa, confetti, leerImagen, estrellas, avatar , pickerEstilos, ESTILOS , tarjetaFid } from './ui.js';
 import qrcode from '../vendor/qrcode.mjs';
 
 const BASICO = ['inicio', 'agenda', 'caja', 'clientes', 'catalogo', 'ajustes'];
@@ -512,6 +512,10 @@ export function render(el, [slug, sec = 'inicio']) {
         <div class="field"><label>Depósito (% del total)</label><input id="a-dp" type="number" value="${t.deposito?.pct || 20}"></div><div class="field"><label>Política de cancelación</label><textarea id="a-p" rows="2">${esc(t.politica)}</textarea></div>
         <div class="row sp" style="margin:12px 0"><div class="sm b">Fila sin cita en la app</div><div class="switch ${t.fila ? 'on' : ''}" id="a-fila"></div></div></div>
       <div class="card flat in3"><h3>Fidelidad</h3><div class="grid g2" style="margin-top:12px"><div class="field"><label>Sellos para premio</label><input id="a-fm" type="number" value="${t.fidelidad?.meta || 10}"></div><div class="field"><label>Premio</label><input id="a-fp" value="${esc(t.fidelidad?.premio || '')}"></div></div>
+        <div class="grid g3"><div class="field"><label>Sellos de regalo (1.ª vez)</label><select id="a-fr">${[0, 1, 2, 3].map(n => `<option value="${n}" ${(t.fidelidad?.regalo ?? 2) === n ? 'selected' : ''}>${n ? n + ' de regalo' : 'Sin regalo'}</option>`).join('')}</select></div>
+          <div class="field"><label>Cada sello es</label><select id="a-fs">${[['logo', 'Mi logo'], ['iniciales', 'Mis iniciales'], ['icono', 'Ícono'], ['estrella', 'Estrella']].map(([k, l]) => `<option value="${k}" ${(t.fidelidad?.sello || 'logo') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+          <div class="field"><label>Fondo</label><select id="a-ff">${[['marca', 'Mis colores'], ['oscuro', 'Oscuro'], ['claro', 'Claro'], ['portada', 'Mi portada']].map(([k, l]) => `<option value="${k}" ${(t.fidelidad?.fondo || 'marca') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div></div>
+        <div id="a-fprev" style="max-width:380px;margin:4px auto 12px">${tarjetaFid(t, { nombre: 'Cliente de ejemplo', n: 4, regalo: 2 })}</div>
         <div class="grid g2"><div class="field"><label>Referidos: % para el amigo</label><input id="a-rp" type="number" value="${t.referidos?.pct || 10}"></div></div></div>
       <div class="card flat in3"><h3>Seguridad</h3><p class="mut sm">Cambia el PIN del dueño en Equipo → ${esc(S.staff(tid)[0]?.nombre)}. En la versión real se entra con correo, contraseña y Face ID.</p><button class="btn ghost sm" data-a="salir">${ic('logout', 15)} Salir del panel</button></div>
       </div>`);
@@ -524,6 +528,7 @@ export function render(el, [slug, sec = 'inicio']) {
     $('#a-lf').onchange = async e => { const d = await leerImagen(e.target.files[0], 400, .85); guardarFoto({ logo: d }); ajustes(); };
     $$('[data-hd]').forEach(s => s.onclick = () => { s.classList.toggle('on'); const d = s.dataset.hd; $$(`[data-ha="${d}"],[data-hb="${d}"]`).forEach(i => i.disabled = !s.classList.contains('on')); });
     ['#a-dep', '#a-fila'].forEach(k => $(k).onclick = e => e.currentTarget.classList.toggle('on'));
+    ['#a-fm', '#a-fp', '#a-fr', '#a-fs', '#a-ff'].forEach(k => { const el2 = $(k); if (el2) el2.oninput = el2.onchange = () => { const tt = T(); $('#a-fprev').innerHTML = tarjetaFid({ ...tt, fidelidad: { meta: Math.max(3, +$('#a-fm').value || 10), premio: $('#a-fp').value, regalo: +$('#a-fr').value, sello: $('#a-fs').value, fondo: $('#a-ff').value } }, { nombre: 'Cliente de ejemplo', n: 4, regalo: +$('#a-fr').value }); }; });
     ['#a-c', '#a-c2'].forEach(k => $(k).oninput = () => setBrand({ color: $('#a-c').value, color2: $('#a-c2').value }));
     $$('[data-rcz]').forEach(b => b.onclick = () => { S.saveTenant({ id: tid, cierres: T().cierres.filter((_, i) => i !== +b.dataset.rcz) }); ajustes(); });
   }
@@ -533,7 +538,7 @@ export function render(el, [slug, sec = 'inicio']) {
     const sucursales = (t.sucursales || []).map((s, i) => ({ ...s, nombre: $(`[data-sn="${i}"]`)?.value || s.nombre, dir: $(`[data-sd="${i}"]`)?.value || s.dir }));
     S.saveTenant({ id: t.id, nombre: $('#a-n').value.trim() || t.nombre, lema: $('#a-l').value, color: $('#a-c').value, color2: $('#a-c2').value, tel: $('#a-t').value, horario, sucursales,
       deposito: { activo: $('#a-dep').classList.contains('on'), pct: +$('#a-dp').value || 20 }, politica: $('#a-p').value, fila: $('#a-fila').classList.contains('on'),
-      fidelidad: { meta: Math.max(3, +$('#a-fm').value || 10), premio: $('#a-fp').value }, referidos: { ...(t.referidos || {}), pct: +$('#a-rp').value || 10 } });
+      fidelidad: { ...(t.fidelidad || {}), meta: Math.max(3, +$('#a-fm').value || 10), premio: $('#a-fp').value, regalo: +$('#a-fr').value, sello: $('#a-fs').value, fondo: $('#a-ff').value }, referidos: { ...(t.referidos || {}), pct: +$('#a-rp').value || 10 } });
     toast('Ajustes guardados ✦'); confetti([$('#a-c2').value, $('#a-c').value, '#0F1420']);
   }
 

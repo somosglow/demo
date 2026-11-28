@@ -98,3 +98,23 @@ export function leerImagen(file, max = 1200, q = 0.78) {
 }
 export const estrellas = (n, size = 16) => `<span style="color:#F5A623;font-size:${size}px;letter-spacing:1px">${'★'.repeat(Math.round(n))}<span style="color:#D9D6CF">${'★'.repeat(5 - Math.round(n))}</span></span>`;
 export const avatar = (o, cls = '', estilo = '') => o?.foto ? `<div class="av ${cls}" style="${estilo};background:url(${o.foto}) center/cover"></div>` : `<div class="av ${cls}" style="--c:${o?.color || 'var(--grad)'};${estilo}">${esc(ini(o?.nombre))}</div>`;
+
+/* tarjeta de fidelidad personalizada: cada sello es el logo del negocio (o sus iniciales, o un ícono), con el fondo que elija el dueño */
+export const ICONO_TIPO = { barberia: '✂️', unas: '💅', spa: '🌿', salon: '💇', estetica: '✨' };
+export function selloHtml(t) {
+  const f = t.fidelidad || {}; const k = f.sello || 'logo';
+  if (k === 'logo' && t.logo) return `<span class="sl-img" style="background-image:url(${t.logo})"></span>`;
+  if (k === 'icono') return `<span class="sl-ic">${ICONO_TIPO[t.tipo] || '✦'}</span>`;
+  if (k === 'estrella') return '<span class="sl-ic">★</span>';
+  return `<span class="sl-ini">${esc(ini(t.nombre))}</span>`;
+}
+export function tarjetaFid(t, { nombre = 'Tu nombre aquí', n = 0, regalo = 0, qr = '' } = {}) {
+  const f = t.fidelidad || {}; const meta = f.meta || 10; const fondo = f.fondo || 'marca';
+  const bg = fondo === 'oscuro' ? 'linear-gradient(150deg,#1E1F25,#0B0C0F)' : fondo === 'portada' && t.portada ? `linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.7)),url(${t.portada}) center/cover` : fondo === 'claro' ? 'linear-gradient(150deg,#FFFFFF,#F1EFEA)' : `linear-gradient(135deg,${t.color2 || '#FFB547'},${t.color || '#FF7A59'})`;
+  const tx = fondo === 'claro' ? '#0F1420' : '#fff';
+  return `<div class="fid" style="background:${bg};color:${tx};--sc:${t.color || '#FF7A59'}">
+    <div class="row sp"><div class="row" style="gap:10px">${t.logo ? `<span class="fid-logo" style="background-image:url(${t.logo})"></span>` : `<span class="fid-logo fid-ini">${esc(ini(t.nombre))}</span>`}<div><div class="b" style="font-size:15px">${esc(t.nombre)}</div><div class="xs" style="opacity:.8;letter-spacing:.12em">TARJETA DE FIDELIDAD</div></div></div><span style="font-size:22px">🎁</span></div>
+    <div class="fid-nom">${esc(nombre)}</div>
+    <div class="fid-st" style="grid-template-columns:repeat(${meta > 10 ? 6 : 5},1fr)">${Array.from({ length: meta }, (_, i) => `<div class="fs ${i < n ? 'on' : ''} ${i < regalo ? 'reg' : ''}" style="animation-delay:${i * .06}s">${i < n ? selloHtml(t) : i === meta - 1 ? '<span class="sl-ic" style="opacity:.9">🎁</span>' : `<span class="xs" style="opacity:.55">${i + 1}</span>`}${i < regalo ? '<i class="fs-tag">Regalo</i>' : ''}</div>`).join('')}</div>
+    <div class="row sp" style="margin-top:12px"><span class="sm b">${n}/${meta} sellos</span><span class="sm" style="opacity:.9">${meta - n > 0 ? `${meta - n} para ${esc(f.premio || 'tu premio')}` : '¡Premio listo!'}</span></div>${qr}</div>`;
+}

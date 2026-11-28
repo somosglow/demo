@@ -129,9 +129,12 @@ export function crearCita(tid, { items, extras = [], staffId, inicio, cliente, n
   const t = tenant(tid);
   const b = { id: uid('b'), tid, cid: c.id, items, extras, staffId, inicio, dur: q.dur, total: q.total, bruto: q.sub, descuento: q.descuento, cupon: q.cupon?.codigo || '', estado: 'confirmada', origen, nota, sucursal,
     pago: { deposito, pagado: deposito > 0 ? deposito : 0, metodo }, creado: iso(new Date()), codigo: codigo(t), avisos: {} };
+  /* regalo de bienvenida: sellos gratis la primera vez que el cliente reserva en este negocio desde la app (una sola vez por número) */
+  const reg = t.fidelidad?.regalo ?? 2;
+  if (origen === 'app' && reg > 0 && !c.bienvenida) { const cc = client(c.id); put('clients', { id: c.id, sellos: Math.min((t.fidelidad?.meta || 10) - 1, (cc.sellos || 0) + reg), bienvenida: iso(new Date()) }); b.bienvenida = reg; }
   put('bookings', b);
   if (q.cupon) put('coupons', { id: q.cupon.id, usos: (q.cupon.usos || 0) + 1 });
-  msg(tid, { cid: c.id, bid: b.id, tipo: 'Confirmación', texto: `Hola ${c.nombre.split(' ')[0]} ✨ Tu cita en ${t.nombre} quedó confirmada: ${inicio.slice(0, 10)} a las ${inicio.slice(11)}. Código ${b.codigo}.` });
+  msg(tid, { cid: c.id, bid: b.id, tipo: 'Confirmación', texto: `Hola ${c.nombre.split(' ')[0]} ✨ Tu cita en ${t.nombre} quedó confirmada: ${inicio.slice(0, 10)} a las ${inicio.slice(11)}. Código ${b.codigo}.${b.bienvenida ? ` 🎁 Te regalamos ${b.bienvenida} sellos de bienvenida en tu tarjeta de fidelidad.` : ''}` });
   return b;
 }
 function codigo(t) { return (t.nombre.match(/\b\w/g) || ['G']).join('').slice(0, 2).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(); }
@@ -281,7 +284,7 @@ export function crearNegocio({ nombre, tipo = 'barberia', zona = '', color = '#F
   const anio = new Date().getFullYear();
   const t = { id: tid, slug, nombre, tipo, zona, color, color2, tel, plan, estilo: estilo || estiloDe(tipo), estado: 'activo', creado: iso(new Date()), demo,
     horario: HOR(), deposito: { activo: tipo !== 'barberia', pct: 20 }, politica: 'Puedes cancelar o cambiar gratis hasta 4 horas antes.',
-    fidelidad: { meta: 10, premio: 'Servicio gratis' }, referidos: { activo: true, pct: 10 }, avisos: { h24: true, antes: 120, gracias: true, tetoca: 21 },
+    fidelidad: { meta: 10, premio: 'Servicio gratis', regalo: 2, sello: 'logo', fondo: 'marca' }, referidos: { activo: true, pct: 10 }, avisos: { h24: true, antes: 120, gracias: true, tetoca: 21 },
     sucursales: [{ id: 'principal', nombre: zona ? zona.split(',')[0] : 'Principal', dir: zona }], fila: true, idiomas: ['es', 'en'],
     cierres: [{ fecha: `${anio}-12-25`, motivo: 'Navidad' }, { fecha: `${anio + 1}-01-01`, motivo: 'Año Nuevo' }],
     extras: (EXTRAS[tipo] || EXTRAS.barberia).map(([n, p, d]) => ({ id: uid('e'), nombre: n, precio: p, dur: d })),
