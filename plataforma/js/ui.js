@@ -108,13 +108,34 @@ export function selloHtml(t) {
   if (k === 'estrella') return '<span class="sl-ic">★</span>';
   return `<span class="sl-ini">${esc(ini(t.nombre))}</span>`;
 }
-export function tarjetaFid(t, { nombre = 'Tu nombre aquí', n = 0, regalo = 0, qr = '' } = {}) {
-  const f = t.fidelidad || {}; const meta = f.meta || 10; const fondo = f.fondo || 'marca';
+export function tarjetaFid(t, { nombre = 'Tu nombre aquí', n = 0, regalo = 0, qr = '', premio = false, nuevo = -1 } = {}) {
+  const f = t.fidelidad || {}; const meta = f.meta || 10; const fondo = f.fondo || 'marca'; if (premio) n = meta;
   const bg = fondo === 'oscuro' ? 'linear-gradient(150deg,#1E1F25,#0B0C0F)' : fondo === 'portada' && t.portada ? `linear-gradient(180deg,rgba(0,0,0,.25),rgba(0,0,0,.7)),url(${t.portada}) center/cover` : fondo === 'claro' ? 'linear-gradient(150deg,#FFFFFF,#F1EFEA)' : `linear-gradient(135deg,${t.color2 || '#FFB547'},${t.color || '#FF7A59'})`;
   const tx = fondo === 'claro' ? '#0F1420' : '#fff';
-  return `<div class="fid" style="background:${bg};color:${tx};--sc:${t.color || '#FF7A59'}">
+  return `<div class="fid ${n >= meta ? 'full' : ''}" style="background:${bg};color:${tx};--sc:${t.color || '#FF7A59'}"><i class="holo"></i>${n >= meta ? '<div class="fid-rib">¡Premio listo! 🎉</div>' : ''}
     <div class="row sp"><div class="row" style="gap:10px">${t.logo ? `<span class="fid-logo" style="background-image:url(${t.logo})"></span>` : `<span class="fid-logo fid-ini">${esc(ini(t.nombre))}</span>`}<div><div class="b" style="font-size:15px">${esc(t.nombre)}</div><div class="xs" style="opacity:.8;letter-spacing:.12em">TARJETA DE FIDELIDAD</div></div></div><span style="font-size:22px">🎁</span></div>
     <div class="fid-nom">${esc(nombre)}</div>
-    <div class="fid-st" style="grid-template-columns:repeat(${meta > 10 ? 6 : 5},1fr)">${Array.from({ length: meta }, (_, i) => `<div class="fs ${i < n ? 'on' : ''} ${i < regalo ? 'reg' : ''}" style="animation-delay:${i * .06}s">${i < n ? selloHtml(t) : i === meta - 1 ? '<span class="sl-ic" style="opacity:.9">🎁</span>' : `<span class="xs" style="opacity:.55">${i + 1}</span>`}${i < regalo ? '<i class="fs-tag">Regalo</i>' : ''}</div>`).join('')}</div>
-    <div class="row sp" style="margin-top:12px"><span class="sm b">${n}/${meta} sellos</span><span class="sm" style="opacity:.9">${meta - n > 0 ? `${meta - n} para ${esc(f.premio || 'tu premio')}` : '¡Premio listo!'}</span></div>${qr}</div>`;
+    <div class="fid-st" style="grid-template-columns:repeat(${meta > 10 ? 6 : 5},1fr)">${Array.from({ length: meta }, (_, i) => `<div class="fs ${i < n ? 'on' : ''} ${i < regalo ? 'reg' : ''} ${i === n && n < meta ? 'next' : ''} ${i === nuevo ? 'nuevo' : ''}" style="animation-delay:${nuevo >= 0 ? (i === nuevo ? 0 : -1) : i * .09}s">${i < n ? selloHtml(t) : i === meta - 1 ? '<span class="sl-ic" style="opacity:.9">🎁</span>' : `<span class="xs" style="opacity:.55">${i + 1}</span>`}${i < regalo ? '<i class="fs-tag">Regalo</i>' : ''}</div>`).join('')}</div>
+    <div class="fid-bar"><i style="width:${Math.min(100, n / meta * 100)}%"></i></div><div class="row sp" style="margin-top:8px"><span class="sm b">${n}/${meta} sellos</span><span class="sm" style="opacity:.9">${meta - n > 0 ? `${meta - n} para ${esc(f.premio || 'tu premio')}` : '¡Premio listo!'}</span></div>${qr}</div>`;
+}
+
+/* vida de la tarjeta: brillo holográfico que sigue el dedo o el giro del celular, vibración por sello y celebración al completarla */
+export function animarFid(root, { sonar = true } = {}) {
+  const card = root.querySelector('.fid'); if (!card) return () => {};
+  const mueve = (x, y) => { card.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); card.style.setProperty('--my', (y * 100).toFixed(1) + '%'); card.style.transform = `perspective(900px) rotateY(${(x - .5) * 16}deg) rotateX(${(.5 - y) * 14}deg)`; };
+  const pm = e => { const r = card.getBoundingClientRect(); mueve(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))); };
+  const fin = () => { card.style.transform = ''; };
+  const gy = e => { if (e.gamma == null) return; mueve(Math.min(1, Math.max(0, .5 + e.gamma / 50)), Math.min(1, Math.max(0, .5 + (e.beta - 40) / 60))); };
+  card.addEventListener('pointermove', pm); card.addEventListener('pointerleave', fin); addEventListener('deviceorientation', gy);
+  if (sonar) { const on = card.querySelectorAll('.fs.on').length; for (let i = 0; i < on; i++) setTimeout(() => vibrar(8), i * 90 + 300); }
+  if (card.classList.contains('full')) setTimeout(() => confetti(), 400 + on0(card) * 90);
+  return () => { removeEventListener('deviceorientation', gy); };
+}
+const on0 = c => c.querySelectorAll('.fs.on').length;
+/* llena la tarjeta sello por sello (para ver cómo se siente completarla) */
+export function llenarFid(cont, t, nombre, desde = 0) {
+  const meta = t.fidelidad?.meta || 10; let n = desde;
+  const paso = () => { n++; cont.innerHTML = tarjetaFid(t, { nombre, n, nuevo: n - 1 }); animarFid(cont, { sonar: false }); vibrar(n === meta ? [30, 60, 30, 60, 80] : 18);
+    if (n < meta) setTimeout(paso, n > meta - 3 ? 650 : 420); else confetti(); };
+  setTimeout(paso, 300);
 }

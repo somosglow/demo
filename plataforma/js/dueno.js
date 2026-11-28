@@ -56,6 +56,36 @@ export function render(el, [slug, sec = 'inicio']) {
       <div class="bar-c"><i style="width:${hechos / P.length * 100}%"></i></div>
       <div class="grid g3 rsp" style="margin-top:12px;gap:8px">${P.map(([l, ok, k]) => `<${k ? `a href="${k === 'compartir' ? '#' : `#/s/${t.slug}/panel/${k}`}" ${k === 'compartir' ? 'data-a="compartir"' : ''}` : 'div'} class="row sm" style="gap:8px;text-decoration:none;padding:8px 10px;border-radius:12px;background:var(--surf);border:1px solid var(--line);${ok ? 'opacity:.6' : ''}"><span class="av r" style="width:24px;height:24px;font-size:11px;${ok ? '--c:var(--ok);color:#fff' : '--c:var(--card2)'}">${ok ? ic('check', 13) : ''}</span><span class="g" style="${ok ? 'text-decoration:line-through' : 'font-weight:600'}">${l}</span></${k ? 'a' : 'div'}>`).join('')}</div></div>`;
   }
+  /* tu mes contra el mes pasado: ventas acumuladas día a día, proyección y comparación */
+  function mesVsMes() {
+    const hoy = new Date(); const d = hoy.getDate(); const y = hoy.getFullYear(), mo = hoy.getMonth();
+    const ini = new Date(y, mo, 1), iniP = new Date(y, mo - 1, 1), diasMes = new Date(y, mo + 1, 0).getDate(), diasP = new Date(y, mo, 0).getDate();
+    const porDia = (base, n) => { const a = Array(n).fill(0); S.sales(tid).forEach(v => { const f = S.parse(v.fecha); if (f.getFullYear() === base.getFullYear() && f.getMonth() === base.getMonth()) a[f.getDate() - 1] += v.sub; }); return a; };
+    const acum = a => a.reduce((o, x, i) => (o.push((o[i - 1] || 0) + x), o), []);
+    const A = acum(porDia(ini, diasMes)).slice(0, d), B = acum(porDia(iniP, diasP));
+    const ya = A[d - 1] || 0, antes = B[Math.min(d, diasP) - 1] || 0, totP = B[diasP - 1] || 0;
+    const pct = antes ? Math.round((ya - antes) / antes * 100) : 0; const proy = d ? ya / d * diasMes : 0;
+    const mP = S.metricas(tid, S.ymd(iniP), S.ymd(new Date(y, mo - 1, Math.min(d, diasP) + 1))), mA = S.metricas(tid, S.ymd(ini), S.ymd(S.addDays(hoy, 1)));
+    const nuevos = base => S.clients(tid).filter(c => { const f = S.parse(c.creado); return f >= base && f < new Date(base.getFullYear(), base.getMonth(), d + 1); }).length;
+    const nA = nuevos(ini), nP = nuevos(iniP);
+    const W = 640, H = 210, pl = 6, pr = 6, pt = 14, pb = 26, mx = Math.max(1, proy, totP) * 1.08; const X = i => pl + i / 30 * (W - pl - pr), Y = v => pt + (1 - v / mx) * (H - pt - pb);
+    const linea = arr => arr.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+    const pathA = linea(A), area = pathA + `L${X(A.length - 1).toFixed(1)},${Y(0)}L${X(0)},${Y(0)}Z`;
+    const proyL = `M${X(d - 1).toFixed(1)},${Y(ya).toFixed(1)}L${X(diasMes - 1).toFixed(1)},${Y(proy).toFixed(1)}`;
+    const MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const cmp = (a, b, fmt = x => x) => { const p = b ? Math.round((a - b) / b * 100) : 0; return `<span class="cmp ${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '▲' : '▼'} ${Math.abs(p)}%</span><div class="xs mut">vs ${fmt(b)} el mes pasado</div>`; };
+    return `<div class="card flat in2 mvm" style="margin-top:12px"><div class="row sp wrapx" style="align-items:flex-start"><div><div class="xs mut">Tu mes vs el mes pasado · al día ${d}</div><h3 style="font-size:22px;margin-top:2px">${S.money(ya)} en ${MES[mo]} <span class="cmp ${pct >= 0 ? 'up' : 'down'}" style="font-size:14px">${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct)}%</span></h3><div class="sm mut">A esta fecha de ${MES[(mo + 11) % 12]} llevabas ${S.money(antes)}. ${pct >= 0 ? '¡Vas mejor! 🔥' : 'Aún puedes alcanzarlo: lanza una promo o escríbele a tus inactivos.'}</div></div>
+      <div class="row" style="gap:14px"><span class="xs row" style="gap:6px"><i class="lg-a"></i>${MES[mo]}</span><span class="xs row" style="gap:6px"><i class="lg-b"></i>${MES[(mo + 11) % 12]}</span><span class="xs row" style="gap:6px"><i class="lg-c"></i>proyección</span></div></div>
+      <svg viewBox="0 0 ${W} ${H}" class="mvm-svg" preserveAspectRatio="none"><defs><linearGradient id="mvA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--brand)" stop-opacity=".35"/><stop offset="1" stop-color="var(--brand)" stop-opacity="0"/></linearGradient><linearGradient id="mvL" x1="0" x2="1"><stop offset="0" stop-color="var(--brand2)"/><stop offset="1" stop-color="var(--brand)"/></linearGradient></defs>
+        ${[.25, .5, .75, 1].map(k => `<line x1="${pl}" x2="${W - pr}" y1="${Y(mx / 1.08 * k)}" y2="${Y(mx / 1.08 * k)}" class="gl"/><text x="${W - pr}" y="${Y(mx / 1.08 * k) - 4}" text-anchor="end" class="gt">${S.money(Math.round(mx / 1.08 * k))}</text>`).join('')}
+        <path d="${linea(B)}" class="lb"/><path d="${proyL}" class="lc"/><path d="${area}" fill="url(#mvA)" class="la-area"/><path d="${pathA}" class="la" pathLength="1"/>
+        <circle cx="${X(d - 1)}" cy="${Y(ya)}" r="6" class="dot-hoy"/><circle cx="${X(d - 1)}" cy="${Y(ya)}" r="6" class="dot-pulse"/>
+        ${[1, 8, 15, 22, 29].map(n => `<text x="${X(n - 1)}" y="${H - 6}" class="gt" text-anchor="middle">${n}</text>`).join('')}</svg>
+      <div class="grid g4 mvm-k"><div><div class="xs mut">Proyección del mes</div><div class="b" style="font-size:18px">${S.money(Math.round(proy))}</div><div class="xs mut">${MES[(mo + 11) % 12]} cerró en ${S.money(totP)}</div></div>
+        <div><div class="xs mut">Citas atendidas</div><div class="b" style="font-size:18px">${mA.completadas}</div>${cmp(mA.completadas, mP.completadas)}</div>
+        <div><div class="xs mut">Clientes nuevos</div><div class="b" style="font-size:18px">${nA}</div>${cmp(nA, nP)}</div>
+        <div><div class="xs mut">Ticket promedio</div><div class="b" style="font-size:18px">${S.money(mA.completadas ? ya / mA.completadas : 0)}</div>${cmp(mA.completadas ? ya / mA.completadas : 0, mP.completadas ? antes / mP.completadas : 0, S.money)}</div></div></div>`;
+  }
   function inicio() {
     const t = T(); const hoy = S.ymd(new Date()), man = S.ymd(S.addDays(new Date(), 1));
     const mh = S.metricas(tid, hoy, man); const mes = hoy.slice(0, 7) + '-01';
@@ -85,6 +115,7 @@ export function render(el, [slug, sec = 'inicio']) {
         <div class="kpi tilt"><div class="l">Vendido en el mes</div><div class="v pop grad-t" data-n="${mm.ingresos}" data-pre="$">0</div><div class="xs mut">Ganancia aprox. ${S.money(mm.ingresos - gastos)}</div></div>
         <div class="kpi tilt"><div class="l">Reputación</div><div class="v pop">${prom.toFixed(1)}</div><div class="xs">${estrellas(prom, 13)} <span class="mut">${rt.length}</span></div></div>
       </div>
+      ${mesVsMes()}
       <div class="grid rsp" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr);margin-top:12px">
         <div class="card flat in2"><div class="row sp"><h3>Ventas · últimos 14 días</h3><span class="pill">${S.money(ing.reduce((a, b) => a + b, 0))}</span></div>
           <div class="bars">${ing.map((v, i) => `<div class="bw" title="${S.money(v)}"><div class="bar ${i === 13 ? 'hoy' : ''}" style="height:${Math.max(2, v / mx * 100)}%;animation-delay:${i * .04}s"></div><small>${dias[i].getDate()}</small></div>`).join('')}</div></div>

@@ -1,5 +1,5 @@
 import * as S from './store.js';
-import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, toast, sheet, closeSheet, confetti, tilt, setBrand, vibrar, ics, wa, estrellas, avatar , tarjetaFid, selloHtml } from './ui.js';
+import { $, $$, esc, ic, ini, h12, fechaL, durL, DIAS, MESES, toast, sheet, closeSheet, confetti, tilt, setBrand, vibrar, ics, wa, estrellas, avatar , tarjetaFid, selloHtml , animarFid, llenarFid } from './ui.js';
 import qrcode from '../vendor/qrcode.mjs';
 
 const PAISES = [['507', '🇵🇦'], ['1', '🇺🇸'], ['57', '🇨🇴'], ['58', '🇻🇪'], ['506', '🇨🇷'], ['52', '🇲🇽'], ['593', '🇪🇨'], ['51', '🇵🇪'], ['34', '🇪🇸'], ['53', '🇨🇺'], ['505', '🇳🇮'], ['54', '🇦🇷']];
@@ -367,14 +367,24 @@ export function render(el, [slug]) {
     sheet(`<div class="tilt">${tarjetaFid(t, { nombre: c ? c.nombre : 'Tu nombre aquí', n: c ? n : 0, regalo: reg, qr: c ? `<div class="c" style="margin-top:14px"><div class="qr" style="padding:8px">${qrSvg('GLOW-FID-' + c.id, 110)}</div><div class="xs" style="opacity:.85;margin-top:6px">Muéstralo en caja para sumar tu sello</div></div>` : '' })}</div>
       ${!c && (t.fidelidad?.regalo ?? 2) > 0 ? `<div class="reg-banner" style="margin-top:12px"><span style="font-size:28px">🎁</span><div class="sm"><b>Te regalamos ${t.fidelidad?.regalo ?? 2} sellos</b> en tu primera reserva desde la app.</div></div>` : ''}
       <p class="xs mut c" style="margin:10px 0 0">Cómo ganas: 1 sello por visita. Al llenarla, tu premio (${esc(t.fidelidad?.premio || 'premio')}) se aplica solo.</p>
-      <div class="grid g2" style="margin-top:12px"><button class="btn dark" data-w> Apple Wallet</button><button class="btn ghost" data-gw>Google Wallet</button></div>`);
-    tilt(document.querySelector('.sheet')); $('.sheet [data-w]').onclick = wallet; $('.sheet [data-gw]').onclick = wallet;
+      <div class="grid g2" style="margin-top:12px"><button class="wallet-btn" data-w><span style="font-size:22px"></span><span style="text-align:left"><small>Agregar a</small>Apple Wallet</span></button><button class="wallet-btn" data-gw style="background:#fff;color:#1f1f1f;border:1px solid #dadce0"><span style="font-size:18px;font-weight:800;color:#4285F4">G</span><span style="text-align:left"><small>Agregar a</small>Google Wallet</span></button></div>
+      <button class="btn ghost w sm" style="margin-top:10px" data-llenar>${ic('spark', 15)} Ver cómo se siente completarla</button>`);
+    const sh = document.querySelector('.sheet'); const parar = animarFid(sh); $('.sheet [data-w]').onclick = () => { parar(); wallet('apple'); }; $('.sheet [data-gw]').onclick = () => { parar(); wallet('google'); };
+    $('.sheet [data-llenar]').onclick = () => { const cont = sh.querySelector('.fid').parentElement; llenarFid(cont, t, c ? c.nombre : 'Tu nombre aquí', c ? (c.sellos || 0) : 0); };
   }
-  function wallet() {
-    sheet(`<div class="c"><div style="font-size:44px">📲</div><h2>Tu tarjeta en la Wallet</h2><p class="mut">Con un toque, tu tarjeta de sellos y tu próxima cita quedan en Apple Wallet o Google Wallet, con aviso en la pantalla bloqueada cuando estés cerca del local.</p>
-      <div class="card flat" style="text-align:left"><div class="sm"><b>En esta demo</b> todavía no se genera el archivo de Wallet: Apple exige que cada tarjeta vaya firmada con el certificado de Glow (cuenta de Apple Developer), y eso se activa en la versión real.</div></div>
-      <button class="btn w" style="margin-top:12px" data-cl>Entendido</button></div>`); $('.sheet [data-cl]').onclick = closeSheet;
+  function wallet(tipo = 'apple') {
+    const t = T(); const c = miCliente(); const meta = t.fidelidad?.meta || 10; const n = c?.sellos || 0;
+    const bg = `linear-gradient(135deg,${t.color2},${t.color})`;
+    sheet(`<h2>${tipo === 'apple' ? 'Apple Wallet' : 'Google Wallet'}</h2><p class="mut sm">Así se verá tu tarjeta en la Wallet. Los sellos se actualizan solos después de cada visita, y te avisa en la pantalla bloqueada cuando estás cerca del local o tu cita es hoy.</p>
+      <div class="wpass tilt" style="background:${bg};margin:14px auto;max-width:330px"><div class="wh"><div class="row" style="gap:8px">${t.logo ? `<span class="fid-logo" style="width:30px;height:30px;background-image:url(${t.logo})"></span>` : `<span class="fid-logo fid-ini" style="width:30px;height:30px;font-size:12px;--sc:${t.color}">${esc(ini(t.nombre))}</span>`}<b>${esc(t.nombre)}</b></div><div style="text-align:right"><small style="opacity:.75;font-size:9.5px">SELLOS</small><div class="b">${n}/${meta}</div></div></div>
+        <div class="ws" style="grid-template-columns:repeat(${meta > 10 ? 6 : 5},1fr);background:rgba(0,0,0,.12)">${Array.from({ length: meta }, (_, i) => `<div class="fs ${i < n ? 'on' : ''}" style="color:#fff;--sc:${t.color}">${i < n ? selloHtml(t) : ''}</div>`).join('')}</div>
+        <div class="wf"><div><small>Cliente</small>${esc(c ? c.nombre : 'Tu nombre')}</div><div style="text-align:right"><small>Premio</small>${esc(t.fidelidad?.premio || 'Servicio gratis')}</div></div>
+        <div class="c" style="background:#fff;padding:12px"><div style="display:inline-block">${qrSvg('GLOW-FID-' + (c?.id || 'demo'), 92)}</div></div></div>
+      <div class="card flat sm"><b>Para activarla de verdad</b> Glow necesita su cuenta de Apple Developer ($99 al año) para firmar las tarjetas, y un pequeño servidor que mande los sellos nuevos a cada celular. Google Wallet no cuesta. En esta demo todavía no se descarga.</div>
+      <button class="btn w" style="margin-top:12px" data-cl>Entendido</button>`);
+    tilt(document.querySelector('.sheet')); $('.sheet [data-cl]').onclick = closeSheet;
   }
+
 
   /* ================= ASISTENTE 24/7 ================= */
   function chat() {
@@ -436,7 +446,7 @@ export function render(el, [slug]) {
     if (k === 'inicio') { Object.assign(st, { items: [], extras: [], staffId: null, fecha: null, hora: null }); inicio(); }
     if (k === 'scrollsvc') { $('#svcs')?.scrollIntoView({ behavior: 'smooth' }); toast('Elige uno o varios servicios', 'scissors'); }
     if (k === 'lang') { lang = lang === 'es' ? 'en' : 'es'; localStorage.setItem('glow.lang', lang); inicio(); }
-    if (k === 'tarjeta') tarjeta(); if (k === 'wallet') wallet();
+    if (k === 'tarjeta') tarjeta(); if (k === 'wallet') wallet('apple');
     if (k === 'misvch') { const vs = misVch(); if (vs.length === 1) verVch(vs[0].id); else { sheet(`<h2>Tus cupones</h2><div class="col" style="margin-top:12px">${vs.map(v => `<button class="svc" data-v="${v.id}"><div class="g"><div class="b">${esc(S.promo(v.pid)?.titulo || 'Promo')}</div><div class="xs mut">${v.codigo}</div></div>${ic('next')}</button>`).join('')}</div>`); $$('.sheet [data-v]').forEach(x => x.onclick = () => verVch(x.dataset.v)); } }
     if (k === 'llamar') { if (!T().tel || T().demo) { e.preventDefault(); toast(T().demo ? 'Demo: aquí se abre la llamada al negocio' : 'Este negocio no tiene teléfono', 'bell'); } }
     if (k === 'calificar') { const c = miCliente(); const b = c && S.bookings(tid).filter(x => x.cid === c.id && x.estado === 'completada' && !S.reviews(tid).some(r => r.bid === x.id)).sort((a, b) => b.inicio.localeCompare(a.inicio))[0]; if (b) resena(b.id, c); else sheet(`<div class="c"><div style="font-size:44px;color:#F5A623">★★★★★</div><h2>Reseñas verificadas</h2><p class="mut">Para que las estrellas sean reales, solo pueden calificar los clientes que ya vinieron. Después de tu cita te llega el enlace por WhatsApp, o lo encuentras en <b>Mis citas</b>.</p><button class="btn w" data-x="1">Entendido</button></div>`), $('.sheet [data-x]') && ($('.sheet [data-x]').onclick = closeSheet); }
