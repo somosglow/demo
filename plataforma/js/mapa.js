@@ -7,11 +7,13 @@ const COSTA = [[-82.56, 9.57], [-82.25, 9.38], [-82.0, 9.1], [-81.75, 9.0], [-81
   [-81.0, 7.6], [-81.2, 7.9], [-81.6, 8.05], [-82.0, 8.15], [-82.3, 8.2], [-82.9, 8.03], [-82.85, 8.4], [-82.95, 8.9], [-82.75, 9.2], [-82.56, 9.57]];
 const VISTAS = { ciudad: [-80.25, -79.15, 8.3, 9.45], pais: [-83.2, -77.1, 7.0, 9.8] };
 
-export function mapa({ vista = 'ciudad', alto = 420, enlace = s => '#/s/' + s } = {}) {
-  const [x0, x1, y0, y1] = VISTAS[vista]; const W = 1000, H = Math.round(W * (y1 - y0) / (x1 - x0) * 1.15);
+export function mapa({ vista = 'pais', alto = 420, enlace = s => '#/s/' + s, centro = null, radio = 10, ids = null } = {}) {
+  let caja = VISTAS[vista];
+  if (centro) { const dLa = radio * 1.25 / 111, dLo = radio * 1.25 / (111 * Math.cos(centro[0] * Math.PI / 180)); caja = [centro[1] - dLo, centro[1] + dLo, centro[0] - dLa * .8, centro[0] + dLa * .8]; }
+  const [x0, x1, y0, y1] = caja; const W = 1000, H = Math.round(W * (y1 - y0) / (x1 - x0) * 1.15);
   const P = ([lon, lat]) => [((lon - x0) / (x1 - x0)) * W, ((y1 - lat) / (y1 - y0)) * H];
   const costa = COSTA.map(P).map(p => p.map(n => n.toFixed(1)).join(',')).join(' ');
-  const ts = S.tenants().filter(t => t.estado === 'activo');
+  const ts = S.tenants().filter(t => t.estado === 'activo' && (!ids || ids.includes(t.id)));
   const vis = ts.map(t => { const [lat, lon] = S.geoDe(t); const [x, y] = P([lon, lat]); return { t, x, y }; }).filter(o => o.x > -20 && o.x < W + 20 && o.y > -20 && o.y < H + 20);
   const anclas = vis.map((o, i) => `<span class="manc" data-i="${i}" style="left:${o.x / W * 100}%;top:${o.y / H * 100}%;--c:${o.t.color}"></span>`).join('');
   const pins = vis.map((o, i) => { const t = o.t; const r = S.reviews(t.id); const pr = r.length ? (r.reduce((a, b) => a + b.estrellas, 0) / r.length).toFixed(1) : '—';
@@ -23,7 +25,7 @@ export function mapa({ vista = 'ciudad', alto = 420, enlace = s => '#/s/' + s } 
       <rect width="${W}" height="${H}" fill="url(#rej)"/>
       <polygon points="${costa}" fill="url(#tierra)" stroke="color-mix(in srgb,var(--brand) 55%,#fff)" stroke-width="3" filter="url(#sombra)"/>
       <path d="${(() => { const a = P([-79.92, 9.36]), b = P([-79.6, 8.96]); return `M${a[0]},${a[1]} Q${(a[0] + b[0]) / 2 + 30},${(a[1] + b[1]) / 2} ${b[0]},${b[1]}`; })()}" fill="none" stroke="#8EC9FF" stroke-width="5" stroke-dasharray="2 10" stroke-linecap="round" opacity=".9"><title>Canal de Panamá</title></path>
-      ${ciudades}</svg>${anclas}</div><div class="mover">${pins}</div></div>`;
+      ${centro ? (() => { const [cx, cy] = P([centro[1], centro[0]]); const rr = radio / ((x1 - x0) * 111 * Math.cos(centro[0] * Math.PI / 180)) * W; return `<circle cx="${cx}" cy="${cy}" r="${rr}" fill="color-mix(in srgb,var(--brand) 8%,transparent)" stroke="var(--brand)" stroke-width="2" stroke-dasharray="8 8"/>`; })() : ciudades}</svg>${anclas}${centro ? (() => { const [cx, cy] = P([centro[1], centro[0]]); return `<span class="myo" style="left:${cx / W * 100}%;top:${cy / H * 100}%"></span>`; })() : ''}</div><div class="mover">${pins}</div></div>`;
 }
 
 export const CSS_MAPA = `
@@ -36,6 +38,8 @@ export const CSS_MAPA = `
 .manc{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--c);box-shadow:0 0 0 6px color-mix(in srgb,var(--c) 25%,transparent);animation:mping 2.2s infinite}
 @keyframes mping{50%{box-shadow:0 0 0 16px color-mix(in srgb,var(--c) 0%,transparent)}}
 .mover{position:absolute;inset:0;pointer-events:none}
+.myo{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#2F8CFF;border:4px solid #fff;box-shadow:0 0 0 10px rgba(47,140,255,.25),0 6px 14px rgba(0,0,0,.25);animation:mping2 2s infinite}
+@keyframes mping2{50%{box-shadow:0 0 0 20px rgba(47,140,255,0),0 6px 14px rgba(0,0,0,.25)}}
 .mpin{position:absolute;left:0;top:0;pointer-events:auto;text-decoration:none;color:var(--txt);display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%);will-change:left,top;z-index:2}
 .mpin-card{display:flex;gap:8px;align-items:center;background:#fff;padding:6px 12px 6px 6px;border-radius:999px;box-shadow:0 14px 30px -10px rgba(15,20,32,.45);white-space:nowrap;animation:mbote 3s ease-in-out infinite;border:2px solid var(--c)}
 .mpin-card i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:12px;color:#fff;background:linear-gradient(135deg,var(--c2),var(--c));flex:none}

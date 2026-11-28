@@ -1,5 +1,5 @@
 import * as S from './store.js';
-import { esc, ic, ini, setBrand, tilt, estrellas } from './ui.js';
+import { esc, ic, ini, setBrand, tilt, estrellas, toast, h12 } from './ui.js';
 import { mapa, CSS_MAPA, animarMapa } from './mapa.js';
 
 export function render(el) {
@@ -32,10 +32,10 @@ export function render(el) {
     </section>
 
     <section style="margin-top:46px">
-      <div class="row sp" style="margin-bottom:12px"><h2>Pruébalo en vivo</h2><span class="pill"><i class="dot"></i> Sincronizado</span></div>
+      <div class="row sp" style="margin-bottom:12px"><h2>¿Tienes un negocio? Pruébalo en vivo</h2><span class="pill"><i class="dot"></i> Sincronizado</span></div>
       <p class="mut sm" style="margin:-4px 0 16px">Abre la app del cliente y reserva. Luego entra como dueño: la cita aparece al instante.</p>
       <div class="grid g3 stagger">
-        ${ts.map(t => `
+        ${ts.filter(t => t.demo).map(t => `
         <div class="card tilt glass" style="--brand:${t.color};--brand2:${t.color2};--grad:linear-gradient(135deg,${t.color2},${t.color})">
           <div class="row pop"><div class="av" style="--c:linear-gradient(135deg,${t.color2},${t.color})">${esc(ini(t.nombre))}</div>
             <div class="g"><h3>${esc(t.nombre)}</h3><div class="mut xs">${esc(S.TIPOS[t.tipo] || '')} · ${esc(t.zona)}</div></div>
@@ -48,10 +48,7 @@ export function render(el) {
       </div>
     </section>
 
-    <section style="margin-top:46px">
-      <div class="row sp wrapx" style="margin-bottom:12px"><div><h2>Negocios con Glow en Panamá</h2><p class="mut sm" style="margin:4px 0 0">Toca un pin para ver su app y reservar.</p></div><span class="pill"><i class="dot"></i> ${S.tenants().filter(t => t.estado === 'activo').length} negocios</span></div>
-      <div id="mapa">${mapa({ vista: 'pais', alto: Math.min(520, Math.max(340, innerWidth * .5)) })}</div>
-    </section>
+    <section style="margin-top:46px" id="cerca"></section>
 
     <section style="margin-top:46px">
       <h2 style="margin-bottom:16px">Todo lo que tu negocio necesita</h2>
@@ -80,6 +77,38 @@ export function render(el) {
   </main>`;
   tilt(el);
   if (!document.getElementById('css-mapa')) { const st = document.createElement('style'); st.id = 'css-mapa'; st.textContent = CSS_MAPA; document.head.append(st); }
-  el.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { el.querySelectorAll('[data-v]').forEach(x => x.classList.toggle('on', x === b)); el.querySelector('#mapa').innerHTML = mapa({ vista: b.dataset.v, alto: Math.min(520, Math.max(360, innerWidth * .55)) }); });
-  return animarMapa(el.querySelector('#mapa'));
+  const zona = el.querySelector('#cerca'); let radio = +(sessionStorage.getItem('glow.radio') || 10);
+  const ubic = () => { try { return JSON.parse(sessionStorage.getItem('glow.ubic')); } catch (e) { return null; } };
+  const pintaCerca = () => {
+    const u = ubic();
+    if (!u) { zona.innerHTML = `<div class="card glass c" style="padding:28px 20px"><div class="ico" style="margin:0 auto;width:60px;height:60px;border-radius:20px;background:var(--grad);color:var(--ink);border:0">${ic('globe', 28)}</div>
+      <h2 style="margin:14px 0 6px">Negocios cerca de ti</h2><p class="mut" style="max-width:420px;margin:0 auto 16px">Te mostramos solo las barberías, salones y spas que tienes cerca, con sus estrellas y su próxima hora libre.</p>
+      <button class="btn" data-a="gps">${ic('globe', 18)} Usar mi ubicación</button>
+      <div class="row" style="max-width:420px;margin:14px auto 0"><select id="zona-sel"><option value="">…o elige tu zona</option>${Object.keys(S.ZONAS).filter((k, i, a) => !/[áéíóú]/.test(k) || !a.includes(k.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))).filter(k => k !== 'panama').map(k => `<option value="${k}">${k.replace(/\b\w/g, c => c.toUpperCase())}</option>`).join('')}</select></div>
+      <p class="xs dim" style="margin-top:10px">Tu ubicación solo se usa en este celular para ordenar los negocios. No se guarda.</p></div>`;
+      zona.querySelector('#zona-sel').onchange = e => { const z = S.ZONAS[e.target.value]; if (z) { sessionStorage.setItem('glow.ubic', JSON.stringify({ lat: z[0], lng: z[1], nombre: e.target.selectedOptions[0].text })); pintaCerca(); } };
+      return; }
+    const yo = [u.lat, u.lng];
+    const lista = S.tenants().filter(t => t.estado === 'activo').map(t => ({ t, d: S.km(yo, S.geoDe(t)) })).filter(x => x.d <= radio).sort((a, b) => a.d - b.d);
+    const rt = t => { const r = S.reviews(t.id); return r.length ? r.reduce((a, x) => a + x.estrellas, 0) / r.length : 0; };
+    const prox = t => { const s0 = S.services(t.id)[0]; if (!s0) return ''; for (let i = 0; i < 3; i++) { const d = S.addDays(new Date(), i); const sl = S.slots(t.id, [s0.id], null, d)[0]; if (sl) return (i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : 'Pasado mañana') + ' ' + h12(sl.hora); } return ''; };
+    zona.innerHTML = `<div class="row sp wrapx" style="margin-bottom:12px"><div><h2>Cerca de ti</h2><p class="mut sm" style="margin:4px 0 0">${esc(u.nombre || 'Tu ubicación')} · ${lista.length} negocio${lista.length === 1 ? '' : 's'} a menos de ${radio} km</p></div>
+      <div class="row"><div class="seg">${[3, 5, 10, 25].map(r => `<button class="${r === radio ? 'on' : ''}" data-r="${r}">${r} km</button>`).join('')}</div><button class="ico" data-a="cambiar" title="Cambiar ubicación">${ic('edit', 16)}</button></div></div>
+      ${lista.length ? `<div id="mapa">${mapa({ centro: yo, radio, ids: lista.map(x => x.t.id), alto: Math.min(460, Math.max(320, innerWidth * .5)) })}</div>
+      <div class="grid g3 rsp stagger" style="margin-top:14px">${lista.map(({ t, d }) => { const r = rt(t); const p = prox(t); return `<a class="card flat tilt" href="#/s/${t.slug}" style="text-decoration:none;--brand:${t.color};--brand2:${t.color2};--grad:linear-gradient(135deg,${t.color2},${t.color})">
+        <div class="pop">${t.portada ? `<div style="height:110px;border-radius:16px;background:url(${t.portada}) center/cover;margin-bottom:12px"></div>` : `<div style="height:70px;border-radius:16px;background:linear-gradient(135deg,${t.color2},${t.color});margin-bottom:12px"></div>`}
+        <div class="row"><div class="av" style="--c:linear-gradient(135deg,${t.color2},${t.color})${t.logo ? `;background:#fff url(${t.logo}) center/contain no-repeat` : ''}">${t.logo ? '' : esc(ini(t.nombre))}</div><div class="g"><div class="b">${esc(t.nombre)}</div><div class="xs mut">${esc(S.TIPOS[t.tipo] || '')} · ${d < 1 ? Math.round(d * 1000) + ' m' : d.toFixed(1) + ' km'}</div></div></div>
+        <div class="row sp" style="margin-top:10px">${r ? `<span class="sm">${estrellas(r, 13)} <b>${r.toFixed(1)}</b></span>` : '<span class="xs mut">Nuevo</span>'}${p ? `<span class="pill ok">${p}</span>` : ''}</div></div></a>`; }).join('')}</div>`
+      : `<div class="card flat c" style="padding:30px"><h3>Aún no hay negocios con Glow a menos de ${radio} km</h3><p class="mut sm">Prueba con un radio más grande.</p><button class="btn ghost sm" data-r="25">Ver hasta 25 km</button></div>`}`;
+    tilt(zona); if (lista.length) parar = animarMapa(zona.querySelector('#mapa'));
+  };
+  let parar = null;
+  zona.onclick = e => { const x = e.target.closest('[data-a],[data-r]'); if (!x) return;
+    if (x.dataset.r) { radio = +x.dataset.r; sessionStorage.setItem('glow.radio', radio); parar && parar(); return pintaCerca(); }
+    if (x.dataset.a === 'cambiar') { sessionStorage.removeItem('glow.ubic'); parar && parar(); return pintaCerca(); }
+    if (x.dataset.a === 'gps') { if (!navigator.geolocation) return toast('Tu navegador no comparte ubicación: elige tu zona', 'globe'); x.textContent = 'Buscando…';
+      navigator.geolocation.getCurrentPosition(p => { sessionStorage.setItem('glow.ubic', JSON.stringify({ lat: p.coords.latitude, lng: p.coords.longitude, nombre: 'Tu ubicación' })); pintaCerca(); },
+        () => { toast('No pudimos ver tu ubicación: elige tu zona', 'globe'); pintaCerca(); }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }); } };
+  pintaCerca();
+  return () => { parar && parar(); };
 }
